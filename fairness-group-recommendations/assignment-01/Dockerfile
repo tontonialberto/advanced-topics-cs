@@ -4,6 +4,8 @@ ADD docker-entrypoint.sh /
 
 ADD requirements.txt /
 
+ENV TABULATE_INSTALL=lib-only
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 ADD src /src
