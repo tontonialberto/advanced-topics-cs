@@ -22,3 +22,7 @@ class CachedSimilarity(Similarity):
         self.__similarities.update({(user_a, user_b): similarity})
         
         return similarity
+    
+    @property
+    def name(self) -> str:
+        return self.__similarity.name

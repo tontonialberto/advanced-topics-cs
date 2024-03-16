@@ -1,4 +1,5 @@
 from unittest import TestCase
+from unittest.mock import Mock
 
 from app.domain.dataset import Dataset
 from app.domain.similarity.pearson import PearsonCorrelation
@@ -77,3 +78,7 @@ class TestPearsonCorrelation(TestCase):
             pearson_correlation.get_similarity(user_a=0, user_b=4),
             3
         )
+    
+    def test_name(self) -> None:
+        itr = PearsonCorrelation(dataset=Mock())
+        self.assertEqual(PearsonCorrelation.__name__, itr.name)

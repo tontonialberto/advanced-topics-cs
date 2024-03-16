@@ -1,4 +1,5 @@
 from unittest import TestCase
+from unittest.mock import Mock
 
 from app.domain.dataset import Dataset
 from app.domain.similarity.itr import ITR
@@ -54,3 +55,7 @@ class TestITR(TestCase):
             itr.get_similarity_urp(union_items=union_items_1_2),
             5
         )
+        
+    def test_name(self) -> None:
+        itr = ITR(dataset=Mock())
+        self.assertEqual(ITR.__name__, itr.name)
