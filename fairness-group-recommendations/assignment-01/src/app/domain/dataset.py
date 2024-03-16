@@ -11,7 +11,10 @@ DataRow = Tuple[UserId, ItemId, float]
 class Dataset:
     def __init__(self, data: List[DataRow]) -> None:
         self.__data = data
-        self.__average_user_ratings = self.__compute_average_user_ratings()
+        self.__precompute()
+        
+    def __len__(self) -> int:
+        return len(self.__data)
         
     def data(self) -> List[DataRow]:
         return self.__data
@@ -20,13 +23,8 @@ class Dataset:
         return self.__average_user_ratings[user]
     
     def get_items_rated_by_both(self, user_a: UserId, user_b: UserId) -> Dict[ItemId, Tuple[float, float]]:
-        items_rated_by_a: Dict[int, float] = {}
-        items_rated_by_b: Dict[int, float] = {}
-        for user, item, rating in self.__data:
-            if user == user_a:
-                items_rated_by_a.update({item: rating})
-            elif user == user_b:
-                items_rated_by_b.update({item: rating})
+        items_rated_by_a = self.__user_ratings[user_a]
+        items_rated_by_b = self.__user_ratings[user_b]
         
         common_items = items_rated_by_a.keys() & items_rated_by_b.keys()
         
@@ -38,13 +36,8 @@ class Dataset:
         return result
     
     def get_items_rated_by_any(self, user_a: UserId, user_b: UserId) -> Dict[ItemId, Tuple[float, float]]:
-        items_rated_by_a: Dict[int, float] = {}
-        items_rated_by_b: Dict[int, float] = {}
-        for user, item, rating in self.__data:
-            if user == user_a:
-                items_rated_by_a.update({item: rating})
-            elif user == user_b:
-                items_rated_by_b.update({item: rating})
+        items_rated_by_a = self.__user_ratings[user_a]
+        items_rated_by_b = self.__user_ratings[user_b]
         
         all_items = items_rated_by_a.keys() | items_rated_by_b.keys()
         
@@ -56,8 +49,7 @@ class Dataset:
         return result
     
     def get_ratings_by_user(self, user: UserId) -> List[Tuple[ItemId, float]]:
-        ratings = [(item, rating) for (user_id, item, rating) in self.__data if user == user_id]
-        return ratings
+        return [(item, rating) for item, rating in self.__user_ratings[user].items()]
     
     def get_users_who_rated(self, item: ItemId) -> List[Tuple[UserId, float]]:
         return [
@@ -68,19 +60,48 @@ class Dataset:
         
     def get_items_not_rated_by_user(self, user: UserId) -> List[ItemId]:
         rated_items = set([item for (item, _) in self.get_ratings_by_user(user)])
-        all_items = set([item for (_, item, _) in self.__data])
+        all_items = set(self.get_all_items())
         unrated_items = all_items - rated_items
         return list(unrated_items)
+    
+    def get_all_users(self) -> List[UserId]:
+        return self.__users
+    
+    def get_all_items(self) -> List[ItemId]:
+        return self.__items
     
     def __compute_average_user_ratings(self) -> Dict[UserId, float]:
         all_users = set([user for (user, _, _) in self.__data])
         result = {}
         for user in all_users:
-            user_ratings = [
-                rating 
-                for (user_id, _, rating) in self.__data
-                if user == user_id
-            ]
+            user_ratings = self.__user_ratings[user].values()
             avg_rating = sum(user_ratings) / len(user_ratings)
             result.update({user: avg_rating})
         return result
+    
+    def get_first(self, limit: int) -> List[DataRow]:
+        return self.__data[:limit]
+    
+    def __compute_user_ratings(self) -> Dict[UserId, Dict[ItemId, float]]:
+        all_users = set([user for (user, _, _) in self.__data])
+        result = {}
+        for user in all_users:
+            user_ratings = {
+                item: rating
+                for (user_id, item, rating) in self.__data
+                if user == user_id
+            }
+            result.update({user: user_ratings})
+        return result
+    
+    def __compute_all_users(self) -> List[UserId]:
+        return list(set([user for (user, _, _) in self.__data]))
+    
+    def __compute_all_items(self) -> List[ItemId]:
+        return list(set([item for (_, item, _) in self.__data]))
+    
+    def __precompute(self) -> None:
+        self.__user_ratings = self.__compute_user_ratings()
+        self.__average_user_ratings = self.__compute_average_user_ratings()
+        self.__users = self.__compute_all_users()
+        self.__items = self.__compute_all_items()
