@@ -1,10 +1,13 @@
 from pathlib import Path
 import os
 from typing import Dict, List, Tuple
-from app.cli.cli_menu import start_cli_menu
+from app.domain.prediction.mean_centered import ALL_NEIGHBORS, MeanCenteredPrediction
+from app.domain.prediction.prediction import Prediction
+from app.result_saver.csv_result_saver import CsvResultSaver
+from app.ui.cli import start_cli_menu
 from app.data_loader.file_data_loader import FileDataLoader
 from app.domain.dataset import Dataset
-from app.domain.recommender import ALL_NEIGHBORS, PerformanceEvaluator, Prediction, PredictionImpl, Recommender, Stats
+from app.domain.recommender import PerformanceEvaluator, Recommender, Stats
 from app.domain.similarity.cached import CachedSimilarity
 from app.domain.similarity.itr import ITR
 from app.domain.similarity.jaccard import Jaccard
@@ -25,6 +28,7 @@ def main() -> None:
     if SIMILARITY_FUNC not in ["itr", "pearson", "jaccard"]:
         SIMILARITY_FUNC = "pearson"
     NUM_NEIGHBORS = int(os.environ.get("NUM_NEIGHBORS", ALL_NEIGHBORS))
+    RESULTS_PATH = Path.cwd().parent / "results"
     
     print(f"Using similarity function: {SIMILARITY_FUNC}.")
     print(f"Considering {f'only {NUM_NEIGHBORS} most similar' if ALL_NEIGHBORS != -1 else 'all'} neighbors for computing predictions.")
@@ -36,11 +40,11 @@ def main() -> None:
     chosen_similarity = similarity_functions[SIMILARITY_FUNC]
 
     stats = Stats(dataset, chosen_similarity)
-    predictor = PredictionImpl(dataset, chosen_similarity, NUM_NEIGHBORS)
+    predictor = MeanCenteredPrediction(dataset, chosen_similarity, NUM_NEIGHBORS)
     recommender = Recommender(dataset, predictor)
     
     predictors_for_comparison: List[Tuple[str, Prediction]] = [
-        (name, PredictionImpl(dataset, similarity, NUM_NEIGHBORS))
+        (name, MeanCenteredPrediction(dataset, similarity, NUM_NEIGHBORS))
         for name, similarity in similarity_functions.items()
     ]
     
@@ -48,7 +52,13 @@ def main() -> None:
     
     print(f"Loaded '{DATASET_FILE_PATH.absolute().as_posix()}'.")
     
-    start_cli_menu(dataset, stats, recommender, evaluator, predictor, chosen_similarity)
+    def file_writer(output_path: Path, content: str) -> None:
+        with open(output_path, "w") as file:
+            file.write(content)
+    
+    result_saver = CsvResultSaver(file_writer)
+    
+    start_cli_menu(dataset, stats, recommender, evaluator, predictor, chosen_similarity, result_saver, RESULTS_PATH)
 
 if __name__ == "__main__":
     main()

@@ -2,7 +2,8 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from app.domain.dataset import Dataset
-from app.domain.recommender import Prediction, Recommender
+from app.domain.prediction.prediction import Prediction
+from app.domain.recommender import Recommender
 
 
 class TestRecommender(TestCase):

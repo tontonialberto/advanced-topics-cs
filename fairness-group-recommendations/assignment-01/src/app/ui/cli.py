@@ -1,12 +1,14 @@
+from pathlib import Path
 from typing import Dict, List, Tuple
-from app.domain.dataset import Dataset, UserId
-from app.domain.recommender import PerformanceEvaluator, Prediction, Recommender, Stats
+from app.domain.dataset import Dataset, ItemId, UserId
+from app.domain.recommender import Evaluation, PerformanceEvaluator, Prediction, PredictorName, Recommender, Stats
+from app.domain.result_saver import ResultSaver
 from app.domain.similarity.similarity import Similarity
 from app.domain.utils import calculate_execution_time
 from tabulate import tabulate
 
 
-def start_cli_menu(dataset: Dataset, stats: Stats, recommender: Recommender, evaluator: PerformanceEvaluator, predictor: Prediction, similarity: Similarity) -> None:
+def start_cli_menu(dataset: Dataset, stats: Stats, recommender: Recommender, evaluator: PerformanceEvaluator, predictor: Prediction, similarity: Similarity, result_saver: ResultSaver, results_output_path: Path) -> None:
     while True:
         print("")
         print("CLI Menu:")
@@ -14,10 +16,11 @@ def start_cli_menu(dataset: Dataset, stats: Stats, recommender: Recommender, eva
         print("2) Show 10 highest similarities for a selected user")
         print("3) Recommend 10 most relevant movies for a selected user")
         print("4) Evaluate predictions for a selected user, based on different similarity functions")
-        print("5) Show the user similarity matrix")
+        print("5) Compute the user similarity matrix")
         print("6) Show items rated by a selected user")
         print("7) Show commonly rated items between two users")
         print("8) Show similarity between two users")
+        print("9) Save assignments results to files, in CSV format")
         print("0) Exit")
 
         choice = input(">> ")
@@ -34,7 +37,7 @@ def start_cli_menu(dataset: Dataset, stats: Stats, recommender: Recommender, eva
             user_id = prompt_user_id()
             display_prediction_comparison(user_id, dataset, evaluator)
         elif choice == "5":
-            display_user_similarity_matrix(stats)
+            compute_user_similarity_matrix(stats)
         elif choice == "6":
             user_id = prompt_user_id()
             display_user_ratings(user_id, dataset)
@@ -46,6 +49,9 @@ def start_cli_menu(dataset: Dataset, stats: Stats, recommender: Recommender, eva
             user_a = prompt_user_id()
             user_b = prompt_user_id()
             display_similarity_between_two_users(user_a, user_b, similarity)
+        elif choice == "9":
+            user = prompt_user_id()
+            save_assigment_results(user, results_output_path, result_saver, similarity, stats, recommender, evaluator, dataset)
         elif choice == "0":
             break
         else:
@@ -108,16 +114,8 @@ def display_most_relevant_recommendations(user: UserId, limit: int, recommender:
     print(tabulate(table, headers=headers, tablefmt="pretty"))
     print("")
     
-def get_mean_absolute_error(comparisons: List[Tuple[float, float]]) -> float:
-    return sum(abs(true_rating - predicted_rating) for true_rating, predicted_rating in comparisons) / len(comparisons)
-
-@calculate_execution_time
-def display_prediction_comparison(user: UserId, dataset: Dataset, evaluator: PerformanceEvaluator) -> None:
-    print("")
-    print("Calculating...")
-
-    comparison = evaluator.get_comparison_by_user(user)
-    predictors = evaluator.predictor_names
+def get_evaluation_tabular_output(user_items: List[Tuple[ItemId, float]], evaluation: Dict[PredictorName, Evaluation]) -> Tuple[List[str], List[List[str]]]:
+    predictors = list(evaluation.keys())
     headers = [
         "Item", 
         "True Rating", 
@@ -126,21 +124,35 @@ def display_prediction_comparison(user: UserId, dataset: Dataset, evaluator: Per
         "Best"
     ]
     table = []
-    scores: Dict[str, float] = {predictor: 0 for predictor in predictors}
-    mean_absolute_errors: Dict[str, float] = {predictor_name: evaluation.mean_absolute_error for predictor_name, evaluation in comparison.items()}
-    
-    for item, actual_rating in dataset.get_ratings_by_user(user):
-        predicted_ratings = [evaluation.predictions[item].prediction for evaluation in comparison.values()]
-        prediction_errors = [evaluation.predictions[item].absolute_error for evaluation in comparison.values()]
+    for item, actual_rating in user_items:
+        predicted_ratings = [evaluation.predictions[item].prediction for evaluation in evaluation.values()]
+        prediction_errors = [evaluation.predictions[item].absolute_error for evaluation in evaluation.values()]
         best_predictor = predictors[prediction_errors.index(min(prediction_errors))]
         row = [
-            item, 
-            actual_rating, 
+            str(item), 
+            str(actual_rating), 
             *[f"{rating:.8f}" for rating in predicted_ratings], 
             *[f"{error:.8f}" for error in prediction_errors], 
             best_predictor
         ]
         table.append(row)
+    return headers, table
+
+@calculate_execution_time
+def display_prediction_comparison(user: UserId, dataset: Dataset, evaluator: PerformanceEvaluator) -> None:
+    print("")
+    print("Calculating...")
+
+    comparison = evaluator.get_comparison_by_user(user)
+    predictors = evaluator.predictor_names
+    user_items = dataset.get_ratings_by_user(user)
+    headers, table = get_evaluation_tabular_output(user_items, comparison)
+    scores: Dict[str, float] = {predictor: 0 for predictor in predictors}
+    mean_absolute_errors: Dict[str, float] = {predictor_name: evaluation.mean_absolute_error for predictor_name, evaluation in comparison.items()}
+    
+    for item, _ in dataset.get_ratings_by_user(user):
+        prediction_errors = [evaluation.predictions[item].absolute_error for evaluation in comparison.values()]
+        best_predictor = predictors[prediction_errors.index(min(prediction_errors))]
         scores[best_predictor] += 1
     
     print(f"Comparison of predictions for user {user}:")
@@ -169,14 +181,12 @@ def compute_and_save_predictions(evaluator: PerformanceEvaluator, predictor: Pre
     print("")
     
 @calculate_execution_time
-def display_user_similarity_matrix(stats: Stats) -> None:
+def compute_user_similarity_matrix(stats: Stats) -> None:
     print("")
     print("Calculating...")
     user_similarity_matrix = stats.get_user_similarity_matrix()
     
-    print("Displaying user similarity matrix:")
-    print("")
-    print(tabulate(user_similarity_matrix.items(), headers=["Users", "Similarity"], tablefmt="pretty"))
+    print("User similarity matrix computed successfully.")
     print("")
     
 @calculate_execution_time
@@ -196,3 +206,65 @@ def display_commonly_rated_items(user_a: UserId, user_b: UserId, dataset: Datase
     print("")
     print(tabulate(table, headers=headers, tablefmt="pretty"))
     print("")
+
+def save_assigment_results(user: UserId, output_folder: Path, result_saver: ResultSaver, similarity: Similarity, stats: Stats, recommender: Recommender, evaluator: PerformanceEvaluator, dataset: Dataset) -> None:
+    print("")
+    print("Computing similarity matrix...")
+    similarity_matrix = stats.get_user_similarity_matrix()
+    user_similarity_matrix_filepath = output_folder / f"user_similarity_matrix_{similarity.name}.csv"
+    result_saver.save(
+        output_path=user_similarity_matrix_filepath,
+        headers=["userIdA", "userIdB", "similarity"],
+        rows=[
+            [str(user_a), str(user_b), f"{similarity:.8f}"]
+            for (user_a, user_b), similarity in similarity_matrix.items()
+        ],
+    )
+    print("Done.")
+    
+    print("")
+    print(f"Computing highest 10 similarities for user {user}...")
+    most_similar_users = stats.get_most_similar_users(user, limit=10)
+    most_similar_users_filepath = output_folder / f"most_similar_10_users_for_user_{user}_{similarity.name}.csv"
+    result_saver.save(
+        output_path=most_similar_users_filepath,
+        headers=["userId", "similarity"],
+        rows=[
+            [str(user_id), f"{similarity:.8f}"]
+            for user_id, similarity in most_similar_users
+        ],
+    )
+    print("Done.")
+    
+    print("")
+    print(f"Computing the 10 most relevant items for user {user}...")
+    most_relevant_recommendations = recommender.get_recommendations(user, limit=10)
+    most_relevant_recommendations_filepath = output_folder / f"most_relevant_10_items_for_user_{user}_{similarity.name}.csv"
+    result_saver.save(
+        output_path=most_relevant_recommendations_filepath,
+        headers=["itemId", "prediction"],
+        rows=[
+            [str(item), f"{predicted_rating:.8f}"]
+            for item, predicted_rating in most_relevant_recommendations
+        ],
+    )
+    print("Done.")
+    
+    print("")
+    print(f"Evaluating predictions using different similarity functions for user {user}...")
+    comparison = evaluator.get_comparison_by_user(user)
+    prediction_evaluation_filepath = output_folder / f"prediction_evaluation_user_{user}.csv"
+    headers, table = get_evaluation_tabular_output(dataset.get_ratings_by_user(user), comparison)
+    result_saver.save(
+        output_path=prediction_evaluation_filepath,
+        headers=headers,
+        rows=table,
+    )
+    print("Done.")
+    
+    print("")
+    print("All done:")
+    print(f"- User similarity matrix saved to: {user_similarity_matrix_filepath.as_posix()}")
+    print(f"- Highest 10 similarities saved to: {most_similar_users_filepath.as_posix()}")
+    print(f"- 10 most relevant items saved to: {most_relevant_recommendations_filepath.as_posix()}")
+    print(f"- Prediction evaluation saved to: {prediction_evaluation_filepath.as_posix()}")
