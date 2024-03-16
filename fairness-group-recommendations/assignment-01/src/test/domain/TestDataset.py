@@ -33,9 +33,11 @@ class TestDataset(TestCase):
         dataset = Dataset(data=[
             (1, 1, 5),
             (1, 2, 4),
+            (1, 4, 1),
             
             (2, 1, 1),
             (2, 3, 3),
+            (2, 4, 1),
         ])
         
         self.assertEqual(
@@ -43,6 +45,7 @@ class TestDataset(TestCase):
                 1: (5, 1),
                 2: (4, 0),
                 3: (0, 3),
+                4: (1, 1),
             },
             dataset.get_items_rated_by_any(1, 2)
         )
@@ -81,4 +84,53 @@ class TestDataset(TestCase):
         self.assertEqual(
             [2],
             dataset.get_items_not_rated_by_user(2)
+        )
+        
+    def test_get_all_users(self) -> None:
+        dataset = Dataset(data=[
+            (1, 1, 5),
+            (1, 2, 5),
+            
+            (2, 1, 1),
+        ])
+        
+        self.assertEqual(
+            [1, 2],
+            dataset.get_all_users()
+        )
+        
+    def test_get_all_items(self) -> None:
+        dataset = Dataset(data=[
+            (1, 1, 5),
+            (1, 2, 5),
+            
+            (2, 1, 1),
+        ])
+        
+        self.assertEqual(
+            [1, 2],
+            dataset.get_all_items()
+        )
+    
+    def test_len(self) -> None:
+        dataset = Dataset(data=[
+            (1, 1, 5),
+            (1, 2, 5),
+            
+            (2, 1, 1),
+        ])
+        
+        self.assertEqual(3, len(dataset))
+        
+    def test_get_first(self) -> None:
+        dataset = Dataset(data=[
+            (1, 1, 5),
+            (1, 2, 5),
+            
+            (2, 1, 1),
+        ])
+        
+        self.assertEqual(
+            [(1, 1, 5), (1, 2, 5)],
+            dataset.get_first(2)
         )

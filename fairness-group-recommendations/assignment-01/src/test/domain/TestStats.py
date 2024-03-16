@@ -1,8 +1,11 @@
+from typing import Dict, Tuple
 from unittest import TestCase
+from unittest.mock import Mock
 
-from app.domain.dataset import Dataset
+from app.domain.dataset import Dataset, UserId
 from app.domain.recommender import Stats
 from app.domain.similarity.pearson import PearsonCorrelation
+from app.domain.similarity.similarity import Similarity
 
 
 class TestStats(TestCase):
@@ -56,3 +59,35 @@ class TestStats(TestCase):
             highest_similarity,
             3
         )
+        
+    def test_get_user_similarity_matrix(self) -> None:
+        dataset = Mock(spec=Dataset)
+        dataset.get_all_users.return_value= [1, 2, 3]
+        def get_similarity(user_a: UserId, user_b: UserId) -> float:
+            mock_similarities = {
+                (1, 1): 1,
+                (1, 2): 0.5,
+                (1, 3): 0,
+                
+                (2, 1): 0.5,
+                (2, 2): 1,
+                (2, 3): -1,
+                
+                (3, 1): 0,
+                (3, 2): -1,
+                (3, 3): 1,
+            }
+            return mock_similarities[(user_a, user_b)] # type: ignore
+        similarity = Mock(spec=Similarity)
+        similarity.get_similarity.side_effect = get_similarity
+        stats = Stats(dataset, similarity)
+        
+        user_similarities: Dict[Tuple[UserId, UserId], float] = stats.get_user_similarity_matrix()
+        
+        self.assertEqual(9, len(user_similarities))
+        self.assertEqual(1, user_similarities[(1, 1)])
+        self.assertEqual(0.5, user_similarities[(1, 2)])
+        self.assertEqual(0, user_similarities[(1, 3)])
+        
+        self.assertEqual(0.5, user_similarities[(2, 1)])
+        
