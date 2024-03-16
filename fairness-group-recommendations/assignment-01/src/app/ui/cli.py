@@ -76,7 +76,7 @@ def display_dataset_info(dataset: Dataset) -> None:
     print("")
     print("Displaying first 10 rows:")
     print("")
-    print(tabulate(table, headers=headers, tablefmt="pretty"))
+    print(tabulate(table, headers=headers, tablefmt="github"))
     
 @calculate_execution_time    
 def display_most_similar_users(user: UserId, limit: int, stats: Stats) -> None:
@@ -88,7 +88,7 @@ def display_most_similar_users(user: UserId, limit: int, stats: Stats) -> None:
     
     print(f"Most similar users to user {user} are:")
     print("")
-    print(tabulate(table, headers=headers, tablefmt="pretty"))    
+    print(tabulate(table, headers=headers, tablefmt="github"))    
     
 def display_user_ratings(user: UserId, dataset: Dataset) -> None:
     ratings = dataset.get_ratings_by_user(user)
@@ -98,7 +98,7 @@ def display_user_ratings(user: UserId, dataset: Dataset) -> None:
     print("")
     print(f"Ratings of user {user} ({len(ratings)} total):")
     print("")
-    print(tabulate(table, headers=headers, tablefmt="pretty"))
+    print(tabulate(table, headers=headers, tablefmt="github"))
     print("")
     
 @calculate_execution_time
@@ -111,7 +111,7 @@ def display_most_relevant_recommendations(user: UserId, limit: int, recommender:
     
     print(f"Most relevant items for user {user}:")
     print("")
-    print(tabulate(table, headers=headers, tablefmt="pretty"))
+    print(tabulate(table, headers=headers, tablefmt="github"))
     print("")
     
 def get_evaluation_tabular_output(user_items: List[Tuple[ItemId, float]], evaluation: Dict[PredictorName, Evaluation]) -> Tuple[List[str], List[List[str]]]:
@@ -157,14 +157,14 @@ def display_prediction_comparison(user: UserId, dataset: Dataset, evaluator: Per
     
     print(f"Comparison of predictions for user {user}:")
     print("")
-    print(tabulate(table, headers=headers, tablefmt="pretty"))
+    print(tabulate(table, headers=headers, tablefmt="github"))
     
     headers = ["Predictor", "Score", "Mean Absolute Error"]
     table = [[predictor, scores[predictor], mean_absolute_errors[predictor]] for predictor in predictors]
     
     print("")
     print("Scores:")
-    print(tabulate(table, headers=headers, tablefmt="pretty"))
+    print(tabulate(table, headers=headers, tablefmt="github"))
 
 @calculate_execution_time
 def compute_and_save_predictions(evaluator: PerformanceEvaluator, predictor: Prediction) -> None:
@@ -204,7 +204,7 @@ def display_commonly_rated_items(user_a: UserId, user_b: UserId, dataset: Datase
     print("")
     print(f"Items rated by both user {user_a} and user {user_b} ({len(common_items)} total):")
     print("")
-    print(tabulate(table, headers=headers, tablefmt="pretty"))
+    print(tabulate(table, headers=headers, tablefmt="github"))
     print("")
 
 def save_assigment_results(user: UserId, output_folder: Path, result_saver: ResultSaver, similarity: Similarity, stats: Stats, recommender: Recommender, evaluator: PerformanceEvaluator, dataset: Dataset) -> None:
