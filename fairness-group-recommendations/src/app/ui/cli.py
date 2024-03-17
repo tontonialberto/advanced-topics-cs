@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import Dict, List, Tuple
 from app.domain.dataset import Dataset, ItemId, UserId
+from app.domain.group_prediction import Group
+from app.domain.group_recommender import GroupRecommender
 from app.domain.recommender import Evaluation, PerformanceEvaluator, Prediction, PredictorName, Recommender, Stats
 from app.domain.result_saver import ResultSaver
 from app.domain.similarity.similarity import Similarity
@@ -8,7 +10,17 @@ from app.domain.utils import calculate_execution_time
 from tabulate import tabulate
 
 
-def start_cli_menu(dataset: Dataset, stats: Stats, recommender: Recommender, evaluator: PerformanceEvaluator, predictor: Prediction, similarity: Similarity, result_saver: ResultSaver, results_output_path: Path) -> None:
+def start_cli_menu(
+        dataset: Dataset, 
+        stats: Stats, 
+        recommender: Recommender, 
+        evaluator: PerformanceEvaluator, 
+        predictor: Prediction, 
+        similarity: Similarity, 
+        result_saver: ResultSaver, 
+        results_output_path: Path, 
+        group_recommender: GroupRecommender) -> None:
+    
     while True:
         print("")
         print("CLI Menu:")
@@ -23,6 +35,8 @@ def start_cli_menu(dataset: Dataset, stats: Stats, recommender: Recommender, eva
         print("  7) Show items rated by a selected user")
         print("  8) Show commonly rated items between two users")
         print("  9) Show similarity between two users")
+        print(" Assignment 2:")
+        print("  10) Recommend 10 most relevant movies for a group of 3 users (Average Aggregation)")
         print(" 0) Exit")
 
         choice = input(">> ")
@@ -55,6 +69,9 @@ def start_cli_menu(dataset: Dataset, stats: Stats, recommender: Recommender, eva
             user_a = prompt_user_id()
             user_b = prompt_user_id()
             display_similarity_between_two_users(user_a, user_b, similarity)
+        elif choice == "10":
+            group = [prompt_user_id() for _ in range(3)]
+            display_most_relevant_group_recommendations(group, limit=10, recommender=group_recommender)
         elif choice == "0":
             break
         else:
@@ -275,3 +292,16 @@ def save_assigment1_results(user: UserId, output_folder: Path, result_saver: Res
     print(f"- Highest 10 similarities saved to: {most_similar_users_filepath.as_posix()}")
     print(f"- 10 most relevant items saved to: {most_relevant_recommendations_filepath.as_posix()}")
     print(f"- Prediction evaluation saved to: {prediction_evaluation_filepath.as_posix()}")
+    
+@calculate_execution_time
+def display_most_relevant_group_recommendations(group: Group, limit: int, recommender: GroupRecommender) -> None:
+    print("")
+    print("Calculating...")
+    recommendations = recommender.get_recommendations(group, limit)
+    headers = ["Item", "Predicted Rating"]
+    table = [[item, predicted_rating] for item, predicted_rating in recommendations]
+    
+    print(f"Most relevant items for group {group}:")
+    print("")
+    print(tabulate(table, headers=headers, tablefmt="github"))
+    print("")
