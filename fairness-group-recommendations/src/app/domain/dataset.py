@@ -82,6 +82,9 @@ class Dataset:
     def get_first(self, limit: int) -> List[DataRow]:
         return self.__data[:limit]
     
+    def get_rating(self, user: UserId, item: ItemId) -> float:
+        return self.__user_ratings[user].get(item, 0)
+    
     def __compute_user_ratings(self) -> Dict[UserId, Dict[ItemId, float]]:
         all_users = set([user for (user, _, _) in self.__data])
         result = {}

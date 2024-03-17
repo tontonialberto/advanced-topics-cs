@@ -134,3 +134,14 @@ class TestDataset(TestCase):
             [(1, 1, 5), (1, 2, 5)],
             dataset.get_first(2)
         )
+        
+    def test_get_rating(self) -> None:
+        dataset = Dataset(data=[
+            (1, 1, 5),
+            
+            (2, 1, 1),
+        ])
+        
+        self.assertEqual(5, dataset.get_rating(1, 1))
+        self.assertEqual(1, dataset.get_rating(2, 1))
+        self.assertEqual(0, dataset.get_rating(1, 3))
