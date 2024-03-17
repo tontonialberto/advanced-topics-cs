@@ -2,6 +2,8 @@
 
 Author: Alberto Tontoni
 
+The project source code is available here: https://github.com/tontonialberto/advanced-topics-cs
+
 >Note: please read the [PDF version](./report-assignment1.pdf) if GitHub encounters problems rendering formulas.
 
 ## Table Of Contents
