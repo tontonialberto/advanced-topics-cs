@@ -309,7 +309,7 @@ To run the application, launch the script `run-app.sh [SIMILARITY_FUNC] [PREDICT
 ### Command Line Interface
 Once launched, the application shows a menu like the following:
 
-![](./resources/report-images/command-line-interface.png)
+![](./../resources/report-images/command-line-interface.png)
 
 Commands from 1 to 4 allow to repeat the assignment tasks from A to E. 
 
