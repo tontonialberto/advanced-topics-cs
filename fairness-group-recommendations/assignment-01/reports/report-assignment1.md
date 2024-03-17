@@ -97,11 +97,9 @@ In general, a prediction function $pred: U \times I \to R$ takes as input a user
 The similarity function seen during classes is the following:
 
 $$
-
 pred(u, i) = \overline r_{u} + \frac
 {\sum_{v \in N} sim(u, v) * (r_{v, i} - \overline r_v)}
 {\sum_{v \in N} sim(u, v)}
-
 $$
 
 where:
@@ -114,9 +112,7 @@ As will be shown later, this prediction function returns ratings which are highl
 Another prediction function has been considered, which is the *Mean-Centered Aggregation* defined as follows:
 
 $$
-
 pred(u, i) = \overline r_{u} + \frac{\sum_{v \in N} sim(u, v) * (r_{v, i} - \overline r_{v})}{\sum_{v \in N} |sim(u, v)|}
-
 $$
 
 The only difference with the previous formula is in the absolute value of the similarities at the denominator.
@@ -183,9 +179,7 @@ Here are proposed alternative approaches for similarity computation. Two functio
 The Jaccard similarity is one of the simplest similarity measures. It's defined as the cardinality of the intersection divided by the cardinality of the union of the sets of items rated by two users:
 
 $$
-
 J(u, v) = \frac{|u \cap v|}{|u \cup v|}
-
 $$
 
 The similarity interval is $[0, 1]$. The similarity is maximum (ie. 1) when $u,v$ have rated exactly the same items, and reaches its minimum (ie. 0) when $u,v$ have no commonly rated items.
@@ -212,9 +206,7 @@ Here are shown the 10 most similar users to user 1 as computed by the Jaccard si
 The ITR similarity is defined as the product of other two similarities: the *Improved Triangle Similarity* and the *User Rating Preferences*. Therefore it's defined as follows:
 
 $$
-
 sim^{ITR} (u, v) = sim^{TRIANGLE'} (u, v) * sim^{URP} (u,v) 
-
 $$
 
 The *Improved Triangle Similarity* is defined as follows:
@@ -226,7 +218,6 @@ sim^{TRIANGLE'}(u, v) = 1 - \frac
         \sqrt{\sum_{i \in I_{uv}} r_{ui}^2} + 
         \sqrt{\sum_{i \in I_{uv}} r_{vi}^2}
     }
-
 $$
 
 where $I_{uv}$ is the set of items rated by **either** $u$ or $v$. If $u$ does not rate a particular item $i$, then its rating will be zero. Therefore, this similarity takes into account also items not in common between the two users.
@@ -234,9 +225,7 @@ where $I_{uv}$ is the set of items rated by **either** $u$ or $v$. If $u$ does n
 For the *User Ratings Preferences*, the following formula has been employed:
 
 $$
-
 sim^{URP}(u,v) = 1 - \frac{1}{1+ + exp(-|\overline r_u - \overline r_v|*|\sigma_u - \sigma_v|)}
-
 $$
 
 where:
@@ -320,7 +309,7 @@ To run the application, launch the script `run-app.sh [SIMILARITY_FUNC] [PREDICT
 ### Command Line Interface
 Once launched, the application shows a menu like the following:
 
-![](./../resources/report-images/command-line-interface.png)
+![](./resources/report-images/command-line-interface.png)
 
 Commands from 1 to 4 allow to repeat the assignment tasks from A to E. 
 
