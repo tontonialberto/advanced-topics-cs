@@ -14,7 +14,7 @@ Author: Alberto Tontoni
 - [Using the Recommendation System (Task D)](#using-the-recommendation-system-task-d)
 - [Alternatives for the similarity function (Task E)](#alternatives-for-the-similarity-function-task-e)
     - [Jaccard Similarity](#jaccard-similarity)
-- [ITR Similarity](#itr-similarity)
+    - [ITR Similarity](#itr-similarity)
 - [Evaluation](#evaluation)
 - [Results](#results)
 - [Bibliography](#bibliography)
