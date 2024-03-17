@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 from typing import Dict, List, Tuple
 from app.domain.prediction.mean_centered import ALL_NEIGHBORS, MeanCenteredPrediction
+from app.domain.prediction.mean_centered_no_abs import MeanCenteredNoAbsPrediction
 from app.domain.prediction.prediction import Prediction
 from app.result_saver.csv_result_saver import CsvResultSaver
 from app.ui.cli import start_cli_menu
@@ -21,16 +22,20 @@ def create_similarity_functions(dataset: Dataset) -> Dict[str, Similarity]:
         "itr": CachedSimilarity(ITR(dataset)),
         "jaccard": CachedSimilarity(Jaccard(dataset)),
     }
-
+    
 def main() -> None:
     DATASET_FILE_PATH = Path.cwd().parent / "resources" / "ml-latest-small" / "ratings.csv"
     SIMILARITY_FUNC = os.environ.get("SIMILARITY_FUNC")
     if SIMILARITY_FUNC not in ["itr", "pearson", "jaccard"]:
         SIMILARITY_FUNC = "pearson"
+    PREDICTION_FUNC = os.environ.get("PREDICTION_FUNC")
+    if PREDICTION_FUNC not in ["mean_centered_abs", "mean_centered_no_abs"]:
+        PREDICTION_FUNC = "mean_centered_abs"
     NUM_NEIGHBORS = int(os.environ.get("NUM_NEIGHBORS", ALL_NEIGHBORS))
     RESULTS_PATH = Path.cwd().parent / "results"
     
     print(f"Using similarity function: {SIMILARITY_FUNC}.")
+    print(f"Using prediction function: {PREDICTION_FUNC}.")
     print(f"Considering {f'only {NUM_NEIGHBORS} most similar' if ALL_NEIGHBORS != -1 else 'all'} neighbors for computing predictions.")
     print("Loading dataset...")
     loader = FileDataLoader(DATASET_FILE_PATH)
@@ -39,8 +44,12 @@ def main() -> None:
     similarity_functions = create_similarity_functions(dataset)
     chosen_similarity = similarity_functions[SIMILARITY_FUNC]
 
+    if PREDICTION_FUNC == "mean_centered_abs":
+        predictor = MeanCenteredPrediction(dataset, chosen_similarity, NUM_NEIGHBORS)
+    else:
+        predictor = MeanCenteredNoAbsPrediction(dataset, chosen_similarity, NUM_NEIGHBORS)
+    
     stats = Stats(dataset, chosen_similarity)
-    predictor = MeanCenteredPrediction(dataset, chosen_similarity, NUM_NEIGHBORS)
     recommender = Recommender(dataset, predictor)
     
     predictors_for_comparison: List[Tuple[str, Prediction]] = [
