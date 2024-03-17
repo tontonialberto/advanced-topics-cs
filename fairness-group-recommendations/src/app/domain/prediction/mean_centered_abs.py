@@ -6,11 +6,10 @@ from app.domain.similarity.similarity import Similarity
 ALL_NEIGHBORS = -1
 
 class MeanCenteredPrediction(Prediction):
-    def __init__(self, dataset: Dataset, similarity: Similarity, num_neighbors: int, use_absolute_value: bool) -> None:
+    def __init__(self, dataset: Dataset, similarity: Similarity, num_neighbors: int, den_absolute_value: bool) -> None:
         self.__dataset = dataset
         self.__similarity = similarity
         self.__num_neighbors = num_neighbors
-        self.__use_absolute_value = use_absolute_value
     
     def get_prediction(self, user: UserId, item: ItemId) -> float:
         neighbors = [neighbor for neighbor in self.__dataset.get_all_users() if neighbor != user]
@@ -28,16 +27,14 @@ class MeanCenteredPrediction(Prediction):
         
         if self.__num_neighbors != ALL_NEIGHBORS:
             # Take only the most similar neighbors
-            closest_neighbors = neighbors_similarities[:self.__num_neighbors]
+            # Do not consider the neighbors that have not rated the item
+            closest_neighbors = [
+                (neighbor, rating, similarity)
+                for (neighbor, rating, similarity) in  neighbors_similarities[:self.__num_neighbors]
+                if rating != 0
+            ]
         else:
             closest_neighbors = neighbors_similarities
-        
-        # Do not consider the neighbors that have not rated the item
-        closest_neighbors = [
-            (neighbor, rating, similarity)
-            for (neighbor, rating, similarity) in closest_neighbors
-            if rating != 0
-        ]
         
         neighbors_avg_ratings = [
             self.__dataset.get_average_rating_by_user(neighbor)
@@ -50,10 +47,7 @@ class MeanCenteredPrediction(Prediction):
         
         avg_user_rating = self.__dataset.get_average_rating_by_user(user)
         
-        if self.__use_absolute_value:
-            denominator = sum([abs(similarity) for (_, _, similarity) in closest_neighbors])
-        else:
-            denominator = sum([similarity for (_, _, similarity) in closest_neighbors])
+        denominator = sum([abs(similarity) for (_, _, similarity) in closest_neighbors])
         
         if denominator == 0:
             # Here, the case is that the considered neighbors for the given item

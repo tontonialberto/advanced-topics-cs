@@ -16,17 +16,27 @@ class MeanCenteredNoAbsPrediction(Prediction):
         self.__num_neighbors = num_neighbors
     
     def get_prediction(self, user: UserId, item: ItemId) -> float:
-        neighbors = self.__dataset.get_users_who_rated(item)
+        neighbors = [neighbor for neighbor in self.__dataset.get_all_users() if neighbor != user]
         
+        # Get all users sorted by their similarity with the considered user
         neighbors_similarities = [
-            (neighbor, rating, self.__similarity.get_similarity(user, neighbor))
-            for (neighbor, rating) in neighbors
+            (
+                neighbor, 
+                self.__dataset.get_rating(neighbor, item), 
+                self.__similarity.get_similarity(user, neighbor)
+            )
+            for neighbor in neighbors
         ]
         neighbors_similarities.sort(key=lambda x: x[2], reverse=True)
         
-        # Take only the most similar neighbors
         if self.__num_neighbors != ALL_NEIGHBORS:
-            closest_neighbors = neighbors_similarities[:self.__num_neighbors]
+            # Take only the most similar neighbors
+            # Do not consider the neighbors that have not rated the item
+            closest_neighbors = [
+                (neighbor, rating, similarity)
+                for (neighbor, rating, similarity) in  neighbors_similarities[:self.__num_neighbors]
+                if rating != 0
+            ]
         else:
             closest_neighbors = neighbors_similarities
         

@@ -1,8 +1,9 @@
 from pathlib import Path
 import os
 from typing import Dict, List, Tuple
+from app.domain.average_aggregation import AverageAggregation
+from app.domain.group_recommender import GroupRecommender
 from app.domain.prediction.mean_centered import ALL_NEIGHBORS, MeanCenteredPrediction
-from app.domain.prediction.mean_centered_no_abs import MeanCenteredNoAbsPrediction
 from app.domain.prediction.prediction import Prediction
 from app.result_saver.csv_result_saver import CsvResultSaver
 from app.ui.cli import start_cli_menu
@@ -36,7 +37,7 @@ def main() -> None:
     
     print(f"Using similarity function: {SIMILARITY_FUNC}.")
     print(f"Using prediction function: {PREDICTION_FUNC}.")
-    print(f"Considering {f'only {NUM_NEIGHBORS} most similar' if ALL_NEIGHBORS != -1 else 'all'} neighbors for computing predictions.")
+    print(f"Considering {f'all' if NUM_NEIGHBORS == ALL_NEIGHBORS else f'only {NUM_NEIGHBORS} most similar'} neighbors for computing predictions.")
     print("Loading dataset...")
     loader = FileDataLoader(DATASET_FILE_PATH)
     dataset = loader.load()
@@ -45,17 +46,18 @@ def main() -> None:
     chosen_similarity = similarity_functions[SIMILARITY_FUNC]
 
     if PREDICTION_FUNC == "mean_centered_abs":
-        predictor = MeanCenteredPrediction(dataset, chosen_similarity, NUM_NEIGHBORS)
+        USE_MEAN_CENTERED_PRED_ABSOLUTE_VALUE = True
     else:
-        predictor = MeanCenteredNoAbsPrediction(dataset, chosen_similarity, NUM_NEIGHBORS)
+        USE_MEAN_CENTERED_PRED_ABSOLUTE_VALUE = False
+        
+    predictor = MeanCenteredPrediction(dataset, chosen_similarity, NUM_NEIGHBORS, use_absolute_value=USE_MEAN_CENTERED_PRED_ABSOLUTE_VALUE)
+    predictors_for_comparison: List[Tuple[str, Prediction]] = [
+        (name, MeanCenteredPrediction(dataset, similarity, NUM_NEIGHBORS, use_absolute_value=USE_MEAN_CENTERED_PRED_ABSOLUTE_VALUE))
+        for name, similarity in similarity_functions.items()
+    ]
     
     stats = Stats(dataset, chosen_similarity)
     recommender = Recommender(dataset, predictor)
-    
-    predictors_for_comparison: List[Tuple[str, Prediction]] = [
-        (name, MeanCenteredPrediction(dataset, similarity, NUM_NEIGHBORS))
-        for name, similarity in similarity_functions.items()
-    ]
     
     evaluator = PerformanceEvaluator(predictors_for_comparison, dataset)
     
@@ -67,7 +69,20 @@ def main() -> None:
     
     result_saver = CsvResultSaver(file_writer)
     
-    start_cli_menu(dataset, stats, recommender, evaluator, predictor, chosen_similarity, result_saver, RESULTS_PATH)
+    group_predictor = AverageAggregation(dataset, predictor)
+    group_recommender = GroupRecommender(dataset, group_predictor)
+    
+    start_cli_menu(
+        dataset, 
+        stats, 
+        recommender, 
+        evaluator, 
+        predictor, 
+        chosen_similarity, 
+        result_saver, 
+        RESULTS_PATH,
+        group_recommender,
+    )
 
 if __name__ == "__main__":
     main()
