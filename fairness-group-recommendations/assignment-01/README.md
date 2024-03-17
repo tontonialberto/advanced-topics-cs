@@ -324,15 +324,15 @@ Once launched, the application shows a menu like the following:
 
 Commands from 1 to 4 allow to repeat the assignment tasks from A to E. 
 
-Command 9, if selected, will prompt you to select a user and it will conduct all the assignment tasks on that user, also saving the results on different CSV files in the `assignment-01/results` directory:
+Command 5, if selected, will prompt you to select a user and it will conduct all the assignment tasks on that user, also saving the results on different CSV files in the `results/assignment1` directory:
 - Files named `most_relevant_10_items_for_user_<UserId>_<SimilarityName>.csv` contain the most relevant recommendations for user with id UserId using similarity SimilarityName;
 - Files named `most_similar_10_users_for_user_<UserId>_<SimilarityName>.csv` contain the most similar users for a given user, using the given similarity;
 - Files named `prediction_evaluation_user_<UserId>.csv` contain the result of the evaluation experiment mentioned above on the given user;
 - Files named `user_similarity_matrix_<SimilarityName>.csv` contain the user similarity matrix of the MovieLens 100k dataset for the given similarity.
 
-Command 5 computes the user similarity matrix for the similarity function chosen at application startup. The performances of the matrix computation have been hugely improved during development: the first implementation required approximately 30 minutes to compute PCC matrix on a small laptop, whereas now it takes from 4 to 10 seconds (you can take a look at the commit history to see how the Dataset class has been tweaked to precompute a lot of values). 
+Command 6 computes the user similarity matrix for the similarity function chosen at application startup. The performances of the matrix computation have been hugely improved during development: the first implementation required approximately 30 minutes to compute PCC matrix on a small laptop, whereas now it takes from 4 to 10 seconds (you can take a look at the commit history to see how the Dataset class has been tweaked to precompute a lot of values). 
 
-Commands 6 to 8 are just utilities.
+Commands 7 to 9 are just utilities.
 
 ### Code Organization
 
