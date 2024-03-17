@@ -14,5 +14,15 @@ if [[ "$PREDICTION_FUNC" != "mean_centered_abs" && "$PREDICTION_FUNC" != "mean_c
     exit 1
 fi
 
+NUM_NEIGHBORS_FOR_PREDICTION=${3:-"-1"}
+
+if ! [[ $NUM_NEIGHBORS_FOR_PREDICTION =~ ^-?[0-9]+$ ]]; then
+    echo "Invalid value for NUM_NEIGHBORS_FOR_PREDICTION. Please provide either -1 or a positive integer value."
+    exit 1
+fi
+
 docker compose up --no-start
-docker compose run -it -e SIMILARITY_FUNC="$SIMILARITY_FUNC" -e PREDICTION_FUNC="$PREDICTION_FUNC" app
+docker compose run -it \
+    -e SIMILARITY_FUNC="$SIMILARITY_FUNC" \
+    -e PREDICTION_FUNC="$PREDICTION_FUNC" \
+    -e NUM_NEIGHBORS="$NUM_NEIGHBORS_FOR_PREDICTION" app
