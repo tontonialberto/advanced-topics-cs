@@ -25,6 +25,7 @@ def create_similarity_functions(dataset: Dataset) -> Dict[str, Similarity]:
     
 def main() -> None:
     DATASET_FILE_PATH = Path.cwd().parent / "resources" / "ml-latest-small" / "ratings.csv"
+    RESULTS_PATH = Path.cwd().parent / "results"
     SIMILARITY_FUNC = os.environ.get("SIMILARITY_FUNC")
     if SIMILARITY_FUNC not in ["itr", "pearson", "jaccard"]:
         SIMILARITY_FUNC = "pearson"
@@ -32,7 +33,6 @@ def main() -> None:
     if PREDICTION_FUNC not in ["mean_centered_abs", "mean_centered_no_abs"]:
         PREDICTION_FUNC = "mean_centered_abs"
     NUM_NEIGHBORS = int(os.environ.get("NUM_NEIGHBORS", ALL_NEIGHBORS))
-    RESULTS_PATH = Path.cwd().parent / "results"
     
     print(f"Using similarity function: {SIMILARITY_FUNC}.")
     print(f"Using prediction function: {PREDICTION_FUNC}.")

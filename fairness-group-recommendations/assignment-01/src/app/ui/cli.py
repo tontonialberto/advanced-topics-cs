@@ -12,16 +12,18 @@ def start_cli_menu(dataset: Dataset, stats: Stats, recommender: Recommender, eva
     while True:
         print("")
         print("CLI Menu:")
-        print("1) Display dataset information")
-        print("2) Show 10 highest similarities for a selected user")
-        print("3) Recommend 10 most relevant movies for a selected user")
-        print("4) Evaluate predictions for a selected user, based on different similarity functions")
-        print("5) Compute the user similarity matrix")
-        print("6) Show items rated by a selected user")
-        print("7) Show commonly rated items between two users")
-        print("8) Show similarity between two users")
-        print("9) Save assignments results to files, in CSV format")
-        print("0) Exit")
+        print(" Assignment 1:")
+        print("  1) Display dataset information")
+        print("  2) Show 10 highest similarities for a selected user")
+        print("  3) Recommend 10 most relevant movies for a selected user")
+        print("  4) Evaluate predictions for a selected user, based on different similarity functions")
+        print("  5) Save results of assignment 1 to CSV files")
+        print(" Utilities:")
+        print("  6) Compute the user similarity matrix")
+        print("  7) Show items rated by a selected user")
+        print("  8) Show commonly rated items between two users")
+        print("  9) Show similarity between two users")
+        print(" 0) Exit")
 
         choice = input(">> ")
 
@@ -37,21 +39,22 @@ def start_cli_menu(dataset: Dataset, stats: Stats, recommender: Recommender, eva
             user_id = prompt_user_id()
             display_prediction_comparison(user_id, dataset, evaluator)
         elif choice == "5":
-            compute_user_similarity_matrix(stats)
+            user = prompt_user_id()
+            assignment1_output_folder = results_output_path / "assignment1"
+            save_assigment1_results(user, assignment1_output_folder, result_saver, similarity, stats, recommender, evaluator, dataset)
         elif choice == "6":
+            compute_user_similarity_matrix(stats)
+        elif choice == "7":
             user_id = prompt_user_id()
             display_user_ratings(user_id, dataset)
-        elif choice == "7":
-            user_a = prompt_user_id()
-            user_b = prompt_user_id()
-            display_commonly_rated_items(user_a, user_b, dataset)
         elif choice == "8":
             user_a = prompt_user_id()
             user_b = prompt_user_id()
-            display_similarity_between_two_users(user_a, user_b, similarity)
+            display_commonly_rated_items(user_a, user_b, dataset)
         elif choice == "9":
-            user = prompt_user_id()
-            save_assigment_results(user, results_output_path, result_saver, similarity, stats, recommender, evaluator, dataset)
+            user_a = prompt_user_id()
+            user_b = prompt_user_id()
+            display_similarity_between_two_users(user_a, user_b, similarity)
         elif choice == "0":
             break
         else:
@@ -207,7 +210,11 @@ def display_commonly_rated_items(user_a: UserId, user_b: UserId, dataset: Datase
     print(tabulate(table, headers=headers, tablefmt="github"))
     print("")
 
-def save_assigment_results(user: UserId, output_folder: Path, result_saver: ResultSaver, similarity: Similarity, stats: Stats, recommender: Recommender, evaluator: PerformanceEvaluator, dataset: Dataset) -> None:
+@calculate_execution_time
+def save_assigment1_results(user: UserId, output_folder: Path, result_saver: ResultSaver, similarity: Similarity, stats: Stats, recommender: Recommender, evaluator: PerformanceEvaluator, dataset: Dataset) -> None:
+    if not output_folder.exists():
+        output_folder.mkdir(parents=True)
+    
     print("")
     print("Computing similarity matrix...")
     similarity_matrix = stats.get_user_similarity_matrix()
