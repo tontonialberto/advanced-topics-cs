@@ -2,6 +2,8 @@
 
 Author: Alberto Tontoni
 
+>Note: please read the [PDF version](./README.pdf) if GitHub encounters problems rendering formulas.
+
 ## Table Of Contents
 - [Dataset information (Task A)](#dataset-information-task-a)
 - [Design and Implementation of User-Based Collaborative Filtering (Task B, C)](#design-and-implementation-of-user-based-collaborative-filtering-task-b-c)
