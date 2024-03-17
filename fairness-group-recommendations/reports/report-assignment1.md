@@ -2,7 +2,7 @@
 
 Author: Alberto Tontoni
 
->Note: please read the [PDF version](./README.pdf) if GitHub encounters problems rendering formulas.
+>Note: please read the [PDF version](./report-assignment1.pdf) if GitHub encounters problems rendering formulas.
 
 ## Table Of Contents
 - [Dataset information (Task A)](#dataset-information-task-a)
@@ -283,7 +283,7 @@ It means that on this experiment, the similarity which leads to the best recomme
 
 ## Bibliography
 
-[1] Similarity measures for Collaborative Filtering-based Recommender Systems: Review and experimental comparison (https://www.sciencedirect.com/)
+- Similarity measures for Collaborative Filtering-based Recommender Systems: Review and experimental comparison (https://www.sciencedirect.com/)
 
 <div style="page-break-after: always;"></div>
 
