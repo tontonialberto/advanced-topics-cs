@@ -71,6 +71,19 @@ class TestMeanCenteredPrediction(TestCase):
         )
         
         similarity.get_similarity.side_effect = [0.8, 1] # user 3 has the highest similarity
+        predictor = MeanCenteredPrediction(
+            dataset=Dataset([
+                (1, 1, 5),
+                
+                (2, 1, 5),
+                
+                (3, 1, 1),
+                (3, 2, 5),
+            ]),
+            similarity=similarity,
+            num_neighbors=num_neighbors,
+            use_absolute_value=True,
+        )
         self.assertEqual(
             5 + (5 - 3), # average of user 1 + (rating of user 3 for item 2 - average of user 3)
             predictor.get_prediction(user=1, item=2)

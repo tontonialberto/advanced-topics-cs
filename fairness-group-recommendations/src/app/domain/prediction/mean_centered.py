@@ -1,3 +1,4 @@
+from typing import Dict, List, Tuple
 from app.domain.dataset import Dataset, ItemId, UserId
 from app.domain.prediction.prediction import Prediction
 from app.domain.similarity.similarity import Similarity
@@ -11,33 +12,13 @@ class MeanCenteredPrediction(Prediction):
         self.__similarity = similarity
         self.__num_neighbors = num_neighbors
         self.__use_absolute_value = use_absolute_value
+        self.__predictions: Dict[Tuple[UserId, ItemId], float] = {}
     
     def get_prediction(self, user: UserId, item: ItemId) -> float:
-        neighbors = [neighbor for neighbor in self.__dataset.get_all_users() if neighbor != user]
+        if self.__predictions.get((user, item)):
+            return self.__predictions[(user, item)]
         
-        # Get all users sorted by their similarity with the considered user
-        neighbors_similarities = [
-            (
-                neighbor, 
-                self.__dataset.get_rating(neighbor, item), 
-                self.__similarity.get_similarity(user, neighbor)
-            )
-            for neighbor in neighbors
-        ]
-        neighbors_similarities.sort(key=lambda x: x[2], reverse=True)
-        
-        if self.__num_neighbors != ALL_NEIGHBORS:
-            # Take only the most similar neighbors
-            closest_neighbors = neighbors_similarities[:self.__num_neighbors]
-        else:
-            closest_neighbors = neighbors_similarities
-        
-        # Do not consider the neighbors that have not rated the item
-        closest_neighbors = [
-            (neighbor, rating, similarity)
-            for (neighbor, rating, similarity) in closest_neighbors
-            if rating != 0
-        ]
+        closest_neighbors = self.__get_neighbors_similarities(user, item)
         
         neighbors_avg_ratings = [
             self.__dataset.get_average_rating_by_user(neighbor)
@@ -71,5 +52,48 @@ class MeanCenteredPrediction(Prediction):
                 
                 denominator
             )
+            
+        self.__predictions[(user, item)] = prediction
                 
         return prediction
+    
+    def __get_neighbors_similarities(self, user: UserId, item: ItemId) -> List[Tuple[UserId, float, float]]:
+        if self.__num_neighbors == ALL_NEIGHBORS:
+            # if all neighbors, return all users who rated the item
+            neighbors = self.__dataset.get_users_who_rated(item)
+            #   compute similarities for all users
+            neighbors_similarities = [
+                (
+                    neighbor,
+                    rating,
+                    self.__similarity.get_similarity(user, neighbor)
+                )
+                for (neighbor, rating) in neighbors
+            ]
+            return neighbors_similarities
+        else:
+            neighbors = [neighbor for neighbor in self.__dataset.get_all_users() if neighbor != user]
+            
+            # compute similarities for all users
+            neighbors_similarities = [
+                (
+                    neighbor, 
+                    self.__dataset.get_rating(neighbor, item), 
+                    self.__similarity.get_similarity(user, neighbor)
+                )
+                for neighbor in neighbors
+            ]
+            
+            # take the most similar users
+            neighbors_similarities.sort(key=lambda x: x[2], reverse=True)
+            closest_neighbors = neighbors_similarities[:self.__num_neighbors]
+            
+            # exclude neighbors who have not rated the item
+            closest_neighbors = [
+                (neighbor, rating, similarity)
+                for (neighbor, rating, similarity) in closest_neighbors
+                if rating != 0
+            ]
+            
+            # return the most similar users who rated the item
+            return closest_neighbors
