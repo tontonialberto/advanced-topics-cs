@@ -7,6 +7,10 @@ Author: Alberto Tontoni
 - [How to use the application](#how-to-use-the-application)
     - [Build and Run](#build-and-run)
     - [Command Line Interface](#command-line-interface)
+        - [Commands - Assignment 1](#commands---assignment)
+        - [Commands - Assignment 2](#commands---assignment)
+        - [Commands - Utilities](#commands---utilities)
+        - [Commands - System Options](#commands---system-options)
     - [Code Organization](#code-organization)
 
 
@@ -45,7 +49,7 @@ Once launched, the application shows an interactive menu like the following:
 
 ![](./resources/report-images/command-line-interface.png)
 
-#### Assignment 1
+#### Commands - Assignment 1
 Commands from 1 to 4 allow to repeat the assignment tasks from A to E. 
 
 Command 5, if selected, will prompt you to select a user and it will conduct all the assignment tasks on that user, also saving the results on different CSV files in the `results/assignment1` directory:
@@ -54,19 +58,19 @@ Command 5, if selected, will prompt you to select a user and it will conduct all
 - Files named `prediction_evaluation_user_<UserId>.csv` contain the result of the evaluation experiment mentioned above on the given user;
 - Files named `user_similarity_matrix_<SimilarityName>.csv` contain the user similarity matrix of the MovieLens 100k dataset for the given similarity.
 
-#### Assignment 2
+#### Commands - Assignment 2
 Commands from 6 to 8, if selected, will prompt you to select 3 user ids and return the top-10 group recommendations using a different aggregation method. The setting is the same as explained in the Assigment 2 report (see the Results section).
 > In case of Consensus, the values for the coefficients are w1=0.6, w2=0.4.
 
 Commands 9, 10 are just utilities to display the disagreement of either an item or all items among a group of users.
 
-#### Utilities
+#### Commands - Utilities
 Command 101 computes the user similarity matrix for the similarity function chosen at application startup. The performances of the matrix computation have been hugely improved during development: the first implementation required approximately 30 **minutes** to compute PCC matrix on a small laptop, whereas now it takes from 4 to 10 **seconds** (you can take a look at the commit history to see how the Dataset class has been tweaked to precompute a lot of values). 
 > The command is used to *compute* the matrix. It is not shown on the terminal as it is too big. Consider using a command to save it in CSV format.
 
 The other commands are self explanatory.
 
-#### System Options
+#### Commands - System Options
 Command 201 allows to change the number of rows displayed on the terminal during tabular results computation. This can be useful if the default number of rows is not enough for inspecting data.
 
 Command 202 displays the environment variables of the application container. This can be useful to take a look at the current values for `SIMILARITY_FUNC`, `PREDICTION_FUNC`, and so on.
