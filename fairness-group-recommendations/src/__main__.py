@@ -82,8 +82,8 @@ def main() -> None:
     group_predictor_consensus = Consensus(
         group_predictor_avg,
         disagreement,
-        weight_prediction=0.8,
-        weight_disagreement=0.2,
+        weight_prediction=0.6,
+        weight_disagreement=0.4,
     )
     recommender_consensus = GroupRecommender(dataset, group_predictor_consensus)
     

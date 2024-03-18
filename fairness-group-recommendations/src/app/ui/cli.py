@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Dict, List, Tuple
 from app.domain.dataset import Dataset, ItemId, UserId
@@ -34,24 +35,25 @@ def start_cli_menu(
         print("CLI Menu:")
         print(" Assignment 1:")
         print("  1) Display dataset information")
-        print("  2) Show 10 highest similarities for a selected user")
-        print("  3) Recommend 10 most relevant movies for a selected user")
+        print("  2) Show", TABLE_RESULTS_LIMIT, "highest similarities for a selected user")
+        print("  3) Recommend", TABLE_RESULTS_LIMIT, "most relevant movies for a selected user")
         print("  4) Evaluate predictions for a selected user, based on different similarity functions")
         print("  5) Save results of assignment 1 to CSV files")
-        print(" Utilities:")
-        print("  6) Compute the user similarity matrix")
-        print("  7) Show items rated by a selected user")
-        print("  8) Show commonly rated items between two users")
-        print("  9) Show similarity between two users")
         print(" Assignment 2:")
-        print("  10) Recommend 10 most relevant movies for a group of 3 users (Average Aggregation)")
-        print("  11) Recommend 10 most relevant movies for a group of 3 users (Least Misery Aggregation)")
-        print("  12) Recommend 10 most relevant movies for a group of 3 users (Average with Consensus based on Pairwise Disagremeents)")
-        print("  13) Show average pairwise disagreement between a group of 3 users")
-        print("  14) Show disagreements for all items in a group of 3 users")
-        print("  15) Predict rating for a user on an item")
+        print("  6) Recommend", TABLE_RESULTS_LIMIT, "most relevant movies for a group of 3 users (Average Aggregation)")
+        print("  7) Recommend", TABLE_RESULTS_LIMIT, "most relevant movies for a group of 3 users (Least Misery Aggregation)")
+        print("  8) Recommend", TABLE_RESULTS_LIMIT, "most relevant movies for a group of 3 users (Average with Consensus based on Pairwise Disagremeents)")
+        print("  9) Show average pairwise disagreement between a group of 3 users")
+        print("  10) Show disagreements for all items in a group of 3 users")
+        print(" Utilities:")
+        print("  101) Compute the user similarity matrix")
+        print("  102) Show items rated by a selected user")
+        print("  103) Show commonly rated items between two users")
+        print("  104) Show similarity between two users")
+        print("  105) Predict rating for a user on an item")
         print(" System Options:")
-        print("  16) Change table rows limit (default 10)")
+        print("  201) Change table rows limit (default 10)")
+        print("  202) Display system variables")
         print(" 0) Exit")
 
         choice = input(">> ")
@@ -72,40 +74,42 @@ def start_cli_menu(
             assignment1_output_folder = results_output_path / "assignment1"
             save_assigment1_results(user, assignment1_output_folder, result_saver, similarity, stats, recommender, evaluator, dataset)
         elif choice == "6":
-            compute_user_similarity_matrix(stats)
-        elif choice == "7":
-            user_id = prompt_user_id()
-            display_user_ratings(user_id, dataset)
-        elif choice == "8":
-            user_a = prompt_user_id()
-            user_b = prompt_user_id()
-            display_commonly_rated_items(user_a, user_b, dataset)
-        elif choice == "9":
-            user_a = prompt_user_id()
-            user_b = prompt_user_id()
-            display_similarity_between_two_users(user_a, user_b, similarity)
-        elif choice == "10":
             group = [prompt_user_id() for _ in range(3)]
             display_most_relevant_group_recommendations(group, limit=TABLE_RESULTS_LIMIT, recommender=recommender_avg, user_predictor=predictor, disagreement=disagreement)
-        elif choice == "11":
+        elif choice == "7":
             group = [prompt_user_id() for _ in range(3)]
             display_most_relevant_group_recommendations(group, limit=TABLE_RESULTS_LIMIT, recommender=recommender_least_misery, user_predictor=predictor, disagreement=disagreement)
-        elif choice == "12":
+        elif choice == "8":
             group = [prompt_user_id() for _ in range(3)]
             display_most_relevant_group_recommendations(group, limit=TABLE_RESULTS_LIMIT, recommender=recommender_consensus, user_predictor=predictor, disagreement=disagreement)
-        elif choice == "13":
+        elif choice == "9":
             group = [prompt_user_id() for _ in range(3)]
             item = prompt_integer("Enter item id: ")
             display_disagreements(group, [item], disagreement, limit=1)
-        elif choice == "14":
+        elif choice == "10":
             group = [prompt_user_id() for _ in range(3)]
             display_disagreements(group, dataset.get_all_items(), disagreement, limit=TABLE_RESULTS_LIMIT)
-        elif choice == "15":
+        elif choice == "101":
+            compute_user_similarity_matrix(stats)
+        elif choice == "102":
+            user_id = prompt_user_id()
+            display_user_ratings(user_id, dataset)
+        elif choice == "103":
+            user_a = prompt_user_id()
+            user_b = prompt_user_id()
+            display_commonly_rated_items(user_a, user_b, dataset)
+        elif choice == "104":
+            user_a = prompt_user_id()
+            user_b = prompt_user_id()
+            display_similarity_between_two_users(user_a, user_b, similarity)
+        elif choice == "105":
             display_prediction(user_id=prompt_user_id(), item_id=prompt_integer("Enter item id: "), predictor=predictor)
-        elif choice == "16":
+        elif choice == "201":
             TABLE_RESULTS_LIMIT = prompt_integer("Enter new limit: ")
             print(f"Table results limit correctly set to {TABLE_RESULTS_LIMIT}.")
             print("")
+        elif choice == "202":
+            print(os.environ.items())
         elif choice == "0":
             break
         else:
@@ -220,7 +224,7 @@ def display_prediction_comparison(user: UserId, dataset: Dataset, evaluator: Per
     table = [[predictor, scores[predictor], mean_absolute_errors[predictor]] for predictor in predictors]
     
     print("")
-    print("Scores:")
+    print(f"Scores on user {user}:")
     print(tabulate(table, headers=headers, tablefmt="github"))
 
 @calculate_execution_time
