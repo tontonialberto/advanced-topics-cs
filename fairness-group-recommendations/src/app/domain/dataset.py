@@ -52,11 +52,17 @@ class Dataset:
         return [(item, rating) for item, rating in self.__user_ratings[user].items()]
     
     def get_users_who_rated(self, item: ItemId) -> List[Tuple[UserId, float]]:
-        return [
-            (user_id, rating)
-            for (user_id, item_id, rating) in self.__data
+        if self.__item_ratings.get(item):
+            return self.__item_ratings[item]
+        
+        item_ratings = [
+            (user, rating)
+            for (user, item_id, rating) in self.__data
             if item == item_id
         ]
+        self.__item_ratings[item] = item_ratings
+        
+        return item_ratings
         
     def get_items_not_rated_by_user(self, user: UserId) -> List[ItemId]:
         rated_items = set([item for (item, _) in self.get_ratings_by_user(user)])
@@ -108,3 +114,4 @@ class Dataset:
         self.__average_user_ratings = self.__compute_average_user_ratings()
         self.__users = self.__compute_all_users()
         self.__items = self.__compute_all_items()
+        self.__item_ratings: Dict[ItemId, List[Tuple[UserId, float]]] = {}
