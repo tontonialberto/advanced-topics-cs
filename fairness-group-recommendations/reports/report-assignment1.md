@@ -2,7 +2,7 @@
 
 Author: Alberto Tontoni
 
-The project source code is available here: https://github.com/tontonialberto/advanced-topics-cs
+Project Source Code: https://github.com/tontonialberto/advanced-topics-cs
 
 ## Table Of Contents
 - [Dataset information (Task A)](#dataset-information-task-a)

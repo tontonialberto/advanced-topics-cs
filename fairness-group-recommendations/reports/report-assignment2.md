@@ -2,6 +2,8 @@
 
 Author: Alberto Tontoni
 
+Project Source Code: https://github.com/tontonialberto/advanced-topics-cs
+
 This report describes the implementation of a basic Group Recommendation System
 for the MovieLens 100K small dataset, leveraging the User-based Collaborative Filtering approach
 implemented in Assignment 1.
