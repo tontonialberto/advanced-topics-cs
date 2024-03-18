@@ -4,8 +4,6 @@ Author: Alberto Tontoni
 
 The project source code is available here: https://github.com/tontonialberto/advanced-topics-cs
 
->Note: please read the [PDF version](./report-assignment1.pdf) if GitHub encounters problems rendering formulas.
-
 ## Table Of Contents
 - [Dataset information (Task A)](#dataset-information-task-a)
 - [Design and Implementation of User-Based Collaborative Filtering (Task B, C)](#design-and-implementation-of-user-based-collaborative-filtering-task-b-c)
@@ -19,11 +17,9 @@ The project source code is available here: https://github.com/tontonialberto/adv
     - [ITR Similarity](#itr-similarity)
 - [Evaluation](#evaluation)
 - [Results](#results)
-- [Bibliography](#bibliography)
 - [How to use the application](#how-to-use-the-application)
-    - [Build and Run](#build-and-run)
-    - [Command Line Interface](#command-line-interface)
-    - [Code Organization](#code-organization)
+- [References](#references)
+
 
 
 ## Dataset information (Task A)
@@ -94,7 +90,7 @@ The similarity interval is $[-1, 1]$. An edge case to take into account in the i
 
 ### Mean-Centered Aggregation
 
-In general, a prediction function $pred: U \times I \to R$ takes as input a user $u$ and an item $i$ not rated by the user, and returns an estimate of the rating that $u$ would give to $i$.
+In general, a prediction function $pred: U \times I \to R$ takes as input a user $u$ and an item $i$ not rated by the user, and returns an estimate of the rating that $u$ would give to $i$ (or, more generally speaking, a *score* for that item).
 
 The similarity function seen during classes is the following:
 
@@ -106,7 +102,7 @@ $$
 
 where:
 - $\overline r_u$ is the average rating of user $u$;
-- $N$ is the set of users who commonly rate item $i$;
+- $N$ is the set of users who commonly rate item $i$. We can choose to restrict this set to the most similar users with respect to $u$;
 - $sim(u, v)$ is an arbitrary similarity function.
 
 As will be shown later, this prediction function returns ratings which are highly above or below the range 1-5 for this dataset.
@@ -232,12 +228,20 @@ $$
 
 where:
 - $\overline r_u$ is the average rating of user $u$ over the set of items rated either by $u$ or $v$;
-- $\sigma_u$ is the standard deviation of user $u$ ratings, using the above mentioned average and dividing by the number of items rated by $u$.
+- $\sigma_u$ is the standard deviation of user $u$ ratings, using the above mentioned average and dividing by the number of items rated by $u$:
 
-**Important note**: the implemented version for *User Rating Preferences* uses a slightly different computation for $\sigma_u$ because I've empirically noticed that prediction results are better (with respect to the specific experiment I've made). More specifically:
+$$
+\sigma_u = \sqrt{
+    \frac{\sum_{i \in I_u} (r_{ui} - \overline {r_{u}})^2}{|I_u|}
+}
+$$
+
+**Important note**: the implemented version for *User Rating Preferences* uses a slightly different computation for $\sigma_u$ with respect to the formula presented in [1] because I've empirically noticed that prediction results are better (*with respect to the specific experiment I've made*). More specifically:
 - The formula as presented above performs worse than Pearson Correlation;
 - The tweaked formula performs better than Pearson Correlation;
 - By the way, both versions perform better than Jaccard similarity.
+
+These results will be further explained in the Results section. However, the obtained results cannot be said to be generally better than those obtained in [1] as it would need way more complex evaluations.
 
 Here are shown the 10 most similar users to user 1 as computed by the "tweaked" ITR similarity: 
 
@@ -273,63 +277,42 @@ The best predictor is then chosen according to its MAE and score values.
 
 ## Results
 
-Here's the result of the evaluation conducted on user with Id 1, using the three recommenders (all of them using the *Mean-Centered Aggregation* as prediction function):
+Unless otherwise specified, all the shown experiments use the *Mean-Centered Aggregation* as prediction function on all neighbors.
 
-| Predictor   |   Score |   Mean Absolute Error |
-|-------------|---------|-----------------------|
-| pearson     |      73 |              0.393644 |
-| itr         |     122 |              0.334832 |
-| jaccard     |      37 |              0.434312 |
+Here is the difference of scores between the ITR formula as presented in [1] and the tweaked version. The experiment is conducted on user with Id 1:
 
-It means that on this experiment, the similarity which leads to the best recommendations is ITR, since it has the highest score and lowest MAE.
+| Predictor   | Score | Mean Absolute Error |
+| ----------- | ----- | ------------------- |
+| itr         | 61    | 0.451366            |
+| tweaked itr | 122   | 0.334832            |
 
-## Bibliography
+Here is the example output of the evaluation conducted on user with Id 1 (only few predictions are shown):
 
-- Similarity measures for Collaborative Filtering-based Recommender Systems: Review and experimental comparison (https://www.sciencedirect.com/)
+|   Item |   True Rating |   Pred. (pearson) |   Pred. (tweaked itr) |   Pred. (jaccard) |   Abs. Error (pearson) |   Abs. Error (tweaked itr) |   Abs. Error (jaccard) | Best    |
+|--------|---------------|-------------------|---------------|-------------------|------------------------|--------------------|------------------------|---------|
+|      1 |             4 |           4.40474 |       4.56465 |           4.64696 |             0.404739   |         0.564655   |             0.646957   | pearson |
+|      3 |             4 |           4.07405 |       4.20467 |           4.08122 |             0.0740497  |         0.204666   |             0.0812244  | pearson |
+|      6 |             4 |           4.39643 |       4.46715 |           4.65416 |             0.396434   |         0.467154   |             0.654157   | pearson |
+|     47 |             5 |           4.84033 |       4.57481 |           4.79007 |             0.159666   |         0.425195   |             0.209931   | pearson |
+|     50 |             5 |           4.90937 |       5.00488 |           5.04639 |             0.0906338  |         0.00487751 |             0.0463876  | itr     |
+|     70 |             3 |           3.9321  |       3.79314 |           4.11133 |             0.9321     |         0.793139   |             1.11133    | itr     |
+|    101 |             5 |           5.1171  |       4.90185 |           4.98159 |             0.117096   |         0.0981468  |             0.0184127  | jaccard |
+|    110 |             4 |           4.44158 |       4.5533  |           4.75535 |             0.441582   |         0.553296   |             0.755348   | pearson |
 
-<div style="page-break-after: always;"></div>
+Here's the result of the evaluation conducted on user with Id 1, using the three recommenders:
+
+| Predictor   | Score | Mean Absolute Error |
+| ----------- | ----- | ------------------- |
+| pearson     | 73    | 0.393644            |
+| tweaked itr | 122   | 0.334832            |
+| jaccard     | 37    | 0.434312            |
+
+It means that on this experiment, the similarity which leads to the best recommendations is the tweaked ITR version, since it has the highest score and lowest MAE.
 
 ## How to use the application
 
-The proposed Recommendation System has been realized as a containerized application which exposes a Command Line Interface. Experiments results can be either inspected inside the terminal or saved to CSV files.
+Implementation details and instructions on how to run the application and use it are specified in the README of the Github project.
 
-### Build and Run
+## References
 
-The following software needs to be installed on your machine:
-- Docker and Docker Compose
-- A Bash shell
-
-The following commands assume that the repository is downloaded locally, and your terminal working directory is the assignment folder.
-
-To build the application, launch the script `build-app.sh`.
-
-To run the application, launch the script `run-app.sh [SIMILARITY_FUNC] [PREDICTION_FUNC]`:
-- `SIMILARITY_FUNC` is an optional parameter to specify the similarity function to be used by the RS. Allowed values are `pearson` (default), `jaccard` and `itr`;
-- `PREDICTION_FUN` is an optional parameter to specify the prediction function to be used by the RS. Allowed values are `mean_centered_abs` (default) and `mean_centered_no_abs` (the former is the Mean-Centered Aggregation presented above, the latter is the formula seen in class).
-
-
-### Command Line Interface
-Once launched, the application shows a menu like the following:
-
-![](./../resources/report-images/command-line-interface.png)
-
-Commands from 1 to 4 allow to repeat the assignment tasks from A to E. 
-
-Command 5, if selected, will prompt you to select a user and it will conduct all the assignment tasks on that user, also saving the results on different CSV files in the `results/assignment1` directory:
-- Files named `most_relevant_10_items_for_user_<UserId>_<SimilarityName>.csv` contain the most relevant recommendations for user with id UserId using similarity SimilarityName;
-- Files named `most_similar_10_users_for_user_<UserId>_<SimilarityName>.csv` contain the most similar users for a given user, using the given similarity;
-- Files named `prediction_evaluation_user_<UserId>.csv` contain the result of the evaluation experiment mentioned above on the given user;
-- Files named `user_similarity_matrix_<SimilarityName>.csv` contain the user similarity matrix of the MovieLens 100k dataset for the given similarity.
-
-Command 6 computes the user similarity matrix for the similarity function chosen at application startup. The performances of the matrix computation have been hugely improved during development: the first implementation required approximately 30 minutes to compute PCC matrix on a small laptop, whereas now it takes from 4 to 10 seconds (you can take a look at the commit history to see how the Dataset class has been tweaked to precompute a lot of values). 
-
-Commands 7 to 9 are just utilities.
-
-### Code Organization
-
-The project has been implemented using the Hexagonal Architecture, which promotes high testability. All the business logic is separated by the ways to interact with external systems. This means that the code could be easily extended to be exposed, for example, as a RESTful service instead of a CLI application.
-
-The project source code lies in the `src.app` directory.
-Here, the most interesting module is `domain`, which contains the following submodules:
-- `prediction`: contains the prediction functions implementations;
-- `similarity`: contains the prediction functions implementations.
+[1] Similarity measures for Collaborative Filtering-based Recommender Systems: Review and experimental comparison (https://www.sciencedirect.com/)
