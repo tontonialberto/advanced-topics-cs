@@ -1,8 +1,8 @@
 import itertools
 from typing import List
 from app.domain.dataset import Dataset, ItemId, UserId
-from app.domain.disagreement import Disagreement
-from app.domain.group_prediction import Group
+from app.domain.group_prediction.disagreement.disagreement import Disagreement
+from app.domain.group_prediction.group_prediction import Group
 from app.domain.prediction.prediction import Prediction
 
 

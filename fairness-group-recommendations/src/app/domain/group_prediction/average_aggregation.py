@@ -1,6 +1,6 @@
 from typing import List
 from app.domain.dataset import Dataset, ItemId
-from app.domain.group_prediction import Group, GroupPrediction
+from app.domain.group_prediction.group_prediction import Group, GroupPrediction
 from app.domain.prediction.prediction import Prediction
 
 

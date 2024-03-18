@@ -1,6 +1,6 @@
 from app.domain.dataset import ItemId
-from app.domain.disagreement import Disagreement
-from app.domain.group_prediction import Group, GroupPrediction
+from app.domain.group_prediction.disagreement.disagreement import Disagreement
+from app.domain.group_prediction.group_prediction import Group, GroupPrediction
 
 
 class Consensus(GroupPrediction):

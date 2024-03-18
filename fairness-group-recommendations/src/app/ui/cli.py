@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Dict, List, Tuple
 from app.domain.dataset import Dataset, ItemId, UserId
-from app.domain.disagreement import Disagreement
-from app.domain.group_prediction import Group
+from app.domain.group_prediction.disagreement.disagreement import Disagreement
+from app.domain.group_prediction.group_prediction import Group
 from app.domain.group_recommender import GroupRecommender
 from app.domain.recommender import Evaluation, PerformanceEvaluator, Prediction, PredictorName, Recommender, Stats
 from app.domain.result_saver import ResultSaver

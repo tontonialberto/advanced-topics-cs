@@ -2,7 +2,7 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from app.domain.dataset import Dataset
-from app.domain.least_misery_aggregation import LeastMiseryAggregation
+from app.domain.group_prediction.least_misery_aggregation import LeastMiseryAggregation
 from app.domain.prediction.prediction import Prediction
 
 

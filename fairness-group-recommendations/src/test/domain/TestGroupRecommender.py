@@ -2,7 +2,7 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from app.domain.dataset import Dataset
-from app.domain.group_prediction import GroupPrediction
+from app.domain.group_prediction.group_prediction import GroupPrediction
 from app.domain.group_recommender import GroupRecommender
 
 

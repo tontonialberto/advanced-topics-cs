@@ -1,11 +1,11 @@
 from pathlib import Path
 import os
 from typing import Dict, List, Tuple
-from app.domain.average_aggregation import AverageAggregation
-from app.domain.average_pairwise_disagreement import AveragePairwiseDisagreement
-from app.domain.consensus import Consensus
+from app.domain.group_prediction.average_aggregation import AverageAggregation
+from app.domain.group_prediction.disagreement.average_pairwise_disagreement import AveragePairwiseDisagreement
+from app.domain.group_prediction.consensus import Consensus
 from app.domain.group_recommender import GroupRecommender
-from app.domain.least_misery_aggregation import LeastMiseryAggregation
+from app.domain.group_prediction.least_misery_aggregation import LeastMiseryAggregation
 from app.domain.prediction.mean_centered import ALL_NEIGHBORS, MeanCenteredPrediction
 from app.domain.prediction.prediction import Prediction
 from app.result_saver.csv_result_saver import CsvResultSaver

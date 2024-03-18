@@ -1,6 +1,6 @@
 from typing import List, Tuple
 from app.domain.dataset import Dataset, ItemId
-from app.domain.group_prediction import Group, GroupPrediction
+from app.domain.group_prediction.group_prediction import Group, GroupPrediction
 
 class GroupRecommender:
     def __init__(self, dataset: Dataset, predictor: GroupPrediction) -> None:
