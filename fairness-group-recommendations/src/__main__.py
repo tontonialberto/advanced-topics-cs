@@ -2,7 +2,10 @@ from pathlib import Path
 import os
 from typing import Dict, List, Tuple
 from app.domain.average_aggregation import AverageAggregation
+from app.domain.average_pairwise_disagreement import AveragePairwiseDisagreement
+from app.domain.consensus import Consensus
 from app.domain.group_recommender import GroupRecommender
+from app.domain.least_misery_aggregation import LeastMiseryAggregation
 from app.domain.prediction.mean_centered import ALL_NEIGHBORS, MeanCenteredPrediction
 from app.domain.prediction.prediction import Prediction
 from app.result_saver.csv_result_saver import CsvResultSaver
@@ -69,8 +72,20 @@ def main() -> None:
     
     result_saver = CsvResultSaver(file_writer)
     
-    group_predictor = AverageAggregation(dataset, predictor)
-    group_recommender = GroupRecommender(dataset, group_predictor)
+    group_predictor_avg = AverageAggregation(dataset, predictor)
+    recommender_avg = GroupRecommender(dataset, group_predictor_avg)
+    
+    group_predictor_least_misery = LeastMiseryAggregation(dataset, predictor)
+    recommender_least_misery = GroupRecommender(dataset, group_predictor_least_misery)
+    
+    disagreement = AveragePairwiseDisagreement(dataset, predictor)
+    group_predictor_consensus = Consensus(
+        group_predictor_avg,
+        disagreement,
+        weight_prediction=0.8,
+        weight_disagreement=0.2,
+    )
+    recommender_consensus = GroupRecommender(dataset, group_predictor_consensus)
     
     start_cli_menu(
         dataset, 
@@ -81,7 +96,10 @@ def main() -> None:
         chosen_similarity, 
         result_saver, 
         RESULTS_PATH,
-        group_recommender,
+        recommender_avg,
+        recommender_least_misery,
+        recommender_consensus,
+        disagreement,
     )
 
 if __name__ == "__main__":

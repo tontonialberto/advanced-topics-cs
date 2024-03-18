@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List, Tuple
 from app.domain.dataset import Dataset, ItemId, UserId
+from app.domain.disagreement import Disagreement
 from app.domain.group_prediction import Group
 from app.domain.group_recommender import GroupRecommender
 from app.domain.recommender import Evaluation, PerformanceEvaluator, Prediction, PredictorName, Recommender, Stats
@@ -9,6 +10,8 @@ from app.domain.similarity.similarity import Similarity
 from app.domain.utils import calculate_execution_time
 from tabulate import tabulate
 
+
+TABLE_RESULTS_LIMIT = 10
 
 def start_cli_menu(
         dataset: Dataset, 
@@ -19,7 +22,12 @@ def start_cli_menu(
         similarity: Similarity, 
         result_saver: ResultSaver, 
         results_output_path: Path, 
-        group_recommender: GroupRecommender) -> None:
+        recommender_avg: GroupRecommender,
+        recommender_least_misery: GroupRecommender,
+        recommender_consensus: GroupRecommender,
+        disagreement: Disagreement) -> None:
+    
+    global TABLE_RESULTS_LIMIT
     
     while True:
         print("")
@@ -37,6 +45,13 @@ def start_cli_menu(
         print("  9) Show similarity between two users")
         print(" Assignment 2:")
         print("  10) Recommend 10 most relevant movies for a group of 3 users (Average Aggregation)")
+        print("  11) Recommend 10 most relevant movies for a group of 3 users (Least Misery Aggregation)")
+        print("  12) Recommend 10 most relevant movies for a group of 3 users (Average with Consensus based on Pairwise Disagremeents)")
+        print("  13) Show average pairwise disagreement between a group of 3 users")
+        print("  14) Show disagreements for all items in a group of 3 users")
+        print("  15) Predict rating for a user on an item")
+        print(" System Options:")
+        print("  16) Change table rows limit (default 10)")
         print(" 0) Exit")
 
         choice = input(">> ")
@@ -45,10 +60,10 @@ def start_cli_menu(
             display_dataset_info(dataset)
         elif choice == "2":
             user_id = prompt_user_id()
-            display_most_similar_users(user_id, limit=10, stats=stats)
+            display_most_similar_users(user_id, limit=TABLE_RESULTS_LIMIT, stats=stats)
         elif choice == "3":
             user_id = prompt_user_id()
-            display_most_relevant_recommendations(user_id, limit=10, recommender=recommender)
+            display_most_relevant_recommendations(user_id, limit=TABLE_RESULTS_LIMIT, recommender=recommender)
         elif choice == "4":
             user_id = prompt_user_id()
             display_prediction_comparison(user_id, dataset, evaluator)
@@ -71,17 +86,39 @@ def start_cli_menu(
             display_similarity_between_two_users(user_a, user_b, similarity)
         elif choice == "10":
             group = [prompt_user_id() for _ in range(3)]
-            display_most_relevant_group_recommendations(group, limit=10, recommender=group_recommender)
+            display_most_relevant_group_recommendations(group, limit=TABLE_RESULTS_LIMIT, recommender=recommender_avg, user_predictor=predictor, disagreement=disagreement)
+        elif choice == "11":
+            group = [prompt_user_id() for _ in range(3)]
+            display_most_relevant_group_recommendations(group, limit=TABLE_RESULTS_LIMIT, recommender=recommender_least_misery, user_predictor=predictor, disagreement=disagreement)
+        elif choice == "12":
+            group = [prompt_user_id() for _ in range(3)]
+            display_most_relevant_group_recommendations(group, limit=TABLE_RESULTS_LIMIT, recommender=recommender_consensus, user_predictor=predictor, disagreement=disagreement)
+        elif choice == "13":
+            group = [prompt_user_id() for _ in range(3)]
+            item = prompt_integer("Enter item id: ")
+            display_disagreements(group, [item], disagreement, limit=1)
+        elif choice == "14":
+            group = [prompt_user_id() for _ in range(3)]
+            display_disagreements(group, dataset.get_all_items(), disagreement, limit=TABLE_RESULTS_LIMIT)
+        elif choice == "15":
+            display_prediction(user_id=prompt_user_id(), item_id=prompt_integer("Enter item id: "), predictor=predictor)
+        elif choice == "16":
+            TABLE_RESULTS_LIMIT = prompt_integer("Enter new limit: ")
+            print(f"Table results limit correctly set to {TABLE_RESULTS_LIMIT}.")
+            print("")
         elif choice == "0":
             break
         else:
             print("Invalid choice. Please try again.")
             
-def prompt_user_id() -> UserId: # type: ignore
+def prompt_user_id() -> UserId:
+    return prompt_integer("Enter user id: ")
+            
+def prompt_integer(message: str) -> UserId: # type: ignore
     error = True
     while error:
         try:
-            user_id = int(input("Enter user id: "))
+            user_id = int(input(message))
             return user_id
         except ValueError:
             pass
@@ -187,20 +224,6 @@ def display_prediction_comparison(user: UserId, dataset: Dataset, evaluator: Per
     print(tabulate(table, headers=headers, tablefmt="github"))
 
 @calculate_execution_time
-def compute_and_save_predictions(evaluator: PerformanceEvaluator, predictor: Prediction) -> None:
-    print("")
-    print("Calculating...")
-    all_predictions = evaluator.get_all_predictions(predictor)
-    print("Saving to file...")
-    with open("predictions.csv", "w") as file:
-        file.write("userId,movieId,rating\n")
-        for user, predictions in all_predictions.items():
-            for item, rating in predictions:
-                file.write(f"{user},{item},{rating}\n")
-    print("Done.")
-    print("")
-    
-@calculate_execution_time
 def compute_user_similarity_matrix(stats: Stats) -> None:
     print("")
     print("Calculating...")
@@ -294,14 +317,47 @@ def save_assigment1_results(user: UserId, output_folder: Path, result_saver: Res
     print(f"- Prediction evaluation saved to: {prediction_evaluation_filepath.as_posix()}")
     
 @calculate_execution_time
-def display_most_relevant_group_recommendations(group: Group, limit: int, recommender: GroupRecommender) -> None:
+def display_most_relevant_group_recommendations(group: Group, limit: int, recommender: GroupRecommender, user_predictor: Prediction, disagreement: Disagreement) -> None:
     print("")
     print("Calculating...")
     recommendations = recommender.get_recommendations(group, limit)
-    headers = ["Item", "Predicted Rating"]
-    table = [[item, predicted_rating] for item, predicted_rating in recommendations]
+    headers = ["#", "Item", "Pred. (Group)", *[f"Pred. (User {user})" for user in group], "Disagreement"]
+    table = [
+        [
+            f"{index + 1}.",
+            item, 
+            group_prediction, 
+            *[user_predictor.get_prediction(user, item) for user in group],
+            disagreement.get_disagreement(group, item)
+        ] 
+        for index, (item, group_prediction) in enumerate(recommendations)
+    ]
     
     print(f"Most relevant items for group {group}:")
     print("")
     print(tabulate(table, headers=headers, tablefmt="github"))
+    print("")
+
+@calculate_execution_time
+def display_disagreements(group: Group, item: List[ItemId], disagreement: Disagreement, limit: int) -> None:
+    print("")
+    print("Calculating...")
+    
+    disagreements: List[Tuple[ItemId, float]] = [
+        (item, disagreement.get_disagreement(group, item))
+        for item in item
+    ]
+    disagreements.sort(key=lambda x: x[1], reverse=True)
+    disagreements = disagreements[:limit]
+    
+    headers = ["Item", "Disagreement"]
+    table = [[item, disagreement] for item, disagreement in disagreements]
+    print(f"Disagreements for group {group}:")
+    print(tabulate(table, headers=headers, tablefmt="github"))
+    print("")
+    
+def display_prediction(user_id: UserId, item_id: ItemId, predictor: Prediction) -> None:
+    prediction = predictor.get_prediction(user_id, item_id)
+    print("")
+    print(f"Predicted rating for user {user_id} on item {item_id}: {prediction:.8f}")
     print("")
