@@ -68,7 +68,8 @@ def start_cli_menu(
             display_most_relevant_recommendations(user_id, limit=TABLE_RESULTS_LIMIT, recommender=recommender)
         elif choice == "4":
             user_id = prompt_user_id()
-            display_prediction_comparison(user_id, dataset, evaluator)
+            user_items = dataset.get_ratings_by_user(user_id)
+            display_prediction_comparison(user_id, user_items, evaluator)
         elif choice == "5":
             user = prompt_user_id()
             assignment1_output_folder = results_output_path / "assignment1"
@@ -190,11 +191,9 @@ def get_evaluation_tabular_output(user_items: List[Tuple[ItemId, float]], evalua
         prediction_errors = [evaluation.predictions[item].absolute_error for evaluation in evaluation.values()]
         if all(error == prediction_errors[0] for error in prediction_errors):
             # All items in the list are equal
-            # Add your code here
             best_predictor = "TIE"
         else:
             # Not all items in the list are equal
-            # Add your code here
             best_predictor = predictors[prediction_errors.index(min(prediction_errors))]
         row = [
             str(item), 
@@ -207,19 +206,18 @@ def get_evaluation_tabular_output(user_items: List[Tuple[ItemId, float]], evalua
     return headers, table
 
 @calculate_execution_time
-def display_prediction_comparison(user: UserId, dataset: Dataset, evaluator: PerformanceEvaluator) -> None:
+def display_prediction_comparison(user: UserId, user_items: List[Tuple[ItemId, float]], evaluator: PerformanceEvaluator) -> None:
     print("")
     print("Calculating...")
 
     comparison = evaluator.get_comparison_by_user(user)
     predictors = evaluator.predictor_names
-    user_items = dataset.get_ratings_by_user(user)
     headers, table = get_evaluation_tabular_output(user_items, comparison)
     scores: Dict[str, float] = {predictor: 0 for predictor in predictors}
     ties: int = 0
     mean_absolute_errors: Dict[str, float] = {predictor_name: evaluation.mean_absolute_error for predictor_name, evaluation in comparison.items()}
     
-    for item, _ in dataset.get_ratings_by_user(user):
+    for item, _ in user_items:
         prediction_errors = [evaluation.predictions[item].absolute_error for evaluation in comparison.values()]
         if all(error == prediction_errors[0] for error in prediction_errors):
             # All items in the list are equal
