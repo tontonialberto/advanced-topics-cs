@@ -15,9 +15,6 @@ class Dataset:
         
     def __len__(self) -> int:
         return len(self.__data)
-        
-    def data(self) -> List[DataRow]:
-        return self.__data
     
     def get_average_rating_by_user(self, user: UserId) -> float:
         return self.__average_user_ratings[user]
