@@ -188,7 +188,14 @@ def get_evaluation_tabular_output(user_items: List[Tuple[ItemId, float]], evalua
     for item, actual_rating in user_items:
         predicted_ratings = [evaluation.predictions[item].prediction for evaluation in evaluation.values()]
         prediction_errors = [evaluation.predictions[item].absolute_error for evaluation in evaluation.values()]
-        best_predictor = predictors[prediction_errors.index(min(prediction_errors))]
+        if all(error == prediction_errors[0] for error in prediction_errors):
+            # All items in the list are equal
+            # Add your code here
+            best_predictor = "TIE"
+        else:
+            # Not all items in the list are equal
+            # Add your code here
+            best_predictor = predictors[prediction_errors.index(min(prediction_errors))]
         row = [
             str(item), 
             str(actual_rating), 
@@ -209,12 +216,18 @@ def display_prediction_comparison(user: UserId, dataset: Dataset, evaluator: Per
     user_items = dataset.get_ratings_by_user(user)
     headers, table = get_evaluation_tabular_output(user_items, comparison)
     scores: Dict[str, float] = {predictor: 0 for predictor in predictors}
+    ties: int = 0
     mean_absolute_errors: Dict[str, float] = {predictor_name: evaluation.mean_absolute_error for predictor_name, evaluation in comparison.items()}
     
     for item, _ in dataset.get_ratings_by_user(user):
         prediction_errors = [evaluation.predictions[item].absolute_error for evaluation in comparison.values()]
-        best_predictor = predictors[prediction_errors.index(min(prediction_errors))]
-        scores[best_predictor] += 1
+        if all(error == prediction_errors[0] for error in prediction_errors):
+            # All items in the list are equal
+            ties += 1
+        else:
+            # Not all items in the list are equal
+            best_predictor = predictors[prediction_errors.index(min(prediction_errors))]
+            scores[best_predictor] += 1
     
     print(f"Comparison of predictions for user {user}:")
     print("")
@@ -222,6 +235,7 @@ def display_prediction_comparison(user: UserId, dataset: Dataset, evaluator: Per
     
     headers = ["Predictor", "Score", "Mean Absolute Error"]
     table = [[predictor, scores[predictor], mean_absolute_errors[predictor]] for predictor in predictors]
+    table.append(["TIE", ties, "/"])
     
     print("")
     print(f"Scores on user {user}:")
