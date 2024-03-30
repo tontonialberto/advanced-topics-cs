@@ -22,7 +22,7 @@ if ! [[ $NUM_NEIGHBORS_FOR_PREDICTION =~ ^-?[0-9]+$ ]]; then
 fi
 
 docker compose up --no-start
-docker compose run -it \
+docker compose run -it --rm \
     -e SIMILARITY_FUNC="$SIMILARITY_FUNC" \
     -e PREDICTION_FUNC="$PREDICTION_FUNC" \
     -e NUM_NEIGHBORS="$NUM_NEIGHBORS_FOR_PREDICTION" app
