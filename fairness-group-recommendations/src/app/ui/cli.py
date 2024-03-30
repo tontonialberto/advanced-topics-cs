@@ -8,6 +8,7 @@ from app.domain.group_recommender import GroupRecommender
 from app.domain.recommender import Evaluation, PerformanceEvaluator, Prediction, PredictorName, Recommender, Stats
 from app.domain.result_saver import ResultSaver
 from app.domain.similarity.similarity import Similarity
+from app.domain.user_satisfaction import UserSatisfaction
 from app.domain.utils import calculate_execution_time
 from tabulate import tabulate
 
@@ -26,7 +27,9 @@ def start_cli_menu(
         recommender_avg: GroupRecommender,
         recommender_least_misery: GroupRecommender,
         recommender_consensus: GroupRecommender,
-        disagreement: Disagreement) -> None:
+        disagreement: Disagreement,
+        realistic_group_recommender: GroupRecommender,
+        user_satisfaction: UserSatisfaction) -> None:
     
     global TABLE_RESULTS_LIMIT
     
@@ -45,6 +48,8 @@ def start_cli_menu(
         print("  8) Recommend", TABLE_RESULTS_LIMIT, "most relevant movies for a group of 3 users (Average with Consensus based on Pairwise Disagremeents)")
         print("  9) Show average pairwise disagreement between a group of 3 users")
         print("  10) Show disagreements for all items in a group of 3 users")
+        print(" Assignment 3:")
+        print("  11) Show user satisfaction for a group recommendation (3 users) over multiple iterations (10 top recommendations at each iteration)")
         print(" Utilities:")
         print("  101) Compute the user similarity matrix")
         print("  102) Show items rated by a selected user")
@@ -90,6 +95,10 @@ def start_cli_menu(
         elif choice == "10":
             group = [prompt_user_id() for _ in range(3)]
             display_disagreements(group, dataset.get_all_items(), disagreement, limit=TABLE_RESULTS_LIMIT)
+        elif choice == "11":
+            group = [prompt_user_id() for _ in range(3)]
+            iterations = prompt_integer("Enter number of iterations: ")
+            display_group_satisfaction(group, iterations, realistic_group_recommender, user_satisfaction)
         elif choice == "101":
             compute_user_similarity_matrix(stats)
         elif choice == "102":
@@ -376,4 +385,24 @@ def display_prediction(user_id: UserId, item_id: ItemId, predictor: Prediction) 
     prediction = predictor.get_prediction(user_id, item_id)
     print("")
     print(f"Predicted rating for user {user_id} on item {item_id}: {prediction:.8f}")
+    print("")
+
+@calculate_execution_time
+def display_group_satisfaction(group: Group, iterations: int, group_recommender: GroupRecommender, user_satisfaction: UserSatisfaction) -> None:
+    print("")
+    print("Calculating...")
+    
+    headers = ["Iteration", *[f"User {user} Satisfaction" for user in group], "Group Recommendations"]
+    table = []
+    for iteration in range(iterations):
+        recommendations = group_recommender.get_recommendations(group, limit=10)
+        satisfactions = []
+        for user in group:
+            satisfaction = user_satisfaction.get_satisfaction(user, [item for item, _ in recommendations])
+            satisfactions.append(satisfaction)
+        table.append([iteration, *[f"{satisfaction:.8f}" for satisfaction in satisfactions], [item for item, _ in recommendations]])
+    
+    print(f"User satisfaction for group {group} over {iterations} iterations:")
+    print("")
+    print(tabulate(table, headers=headers, tablefmt="github"))
     print("")

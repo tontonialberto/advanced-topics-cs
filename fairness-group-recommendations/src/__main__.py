@@ -8,6 +8,7 @@ from app.domain.group_recommender import GroupRecommender
 from app.domain.group_prediction.least_misery_aggregation import LeastMiseryAggregation
 from app.domain.prediction.mean_centered import ALL_NEIGHBORS, MeanCenteredPrediction
 from app.domain.prediction.prediction import Prediction
+from app.domain.user_satisfaction import UserSatisfaction
 from app.result_saver.csv_result_saver import CsvResultSaver
 from app.ui.cli import start_cli_menu
 from app.data_loader.file_data_loader import FileDataLoader
@@ -73,10 +74,10 @@ def main() -> None:
     result_saver = CsvResultSaver(file_writer)
     
     group_predictor_avg = AverageAggregation(dataset, predictor)
-    recommender_avg = GroupRecommender(dataset, group_predictor_avg)
+    recommender_avg = GroupRecommender(dataset, group_predictor_avg, exclude_previous=False)
     
     group_predictor_least_misery = LeastMiseryAggregation(dataset, predictor)
-    recommender_least_misery = GroupRecommender(dataset, group_predictor_least_misery)
+    recommender_least_misery = GroupRecommender(dataset, group_predictor_least_misery, exclude_previous=False)
     
     disagreement = AveragePairwiseDisagreement(dataset, predictor)
     group_predictor_consensus = Consensus(
@@ -85,7 +86,10 @@ def main() -> None:
         weight_prediction=0.6,
         weight_disagreement=0.4,
     )
-    recommender_consensus = GroupRecommender(dataset, group_predictor_consensus)
+    recommender_consensus = GroupRecommender(dataset, group_predictor_consensus, exclude_previous=False)
+    
+    realistic_group_recommender = GroupRecommender(dataset, group_predictor_avg, exclude_previous=True)
+    user_satisfaction = UserSatisfaction(recommender, predictor, dataset)
     
     start_cli_menu(
         dataset, 
@@ -100,6 +104,8 @@ def main() -> None:
         recommender_least_misery,
         recommender_consensus,
         disagreement,
+        realistic_group_recommender,
+        user_satisfaction,
     )
 
 if __name__ == "__main__":
