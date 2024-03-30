@@ -25,6 +25,4 @@ class UserSatisfaction:
         user_recommendations = self.__recommender.get_recommendations(user, len(group_recommendation))
         user_list_satisfaction = sum([rating for _, rating in user_recommendations])
         
-        print(f"User {user}. User list sat = {user_list_satisfaction}. Group list sat = {group_list_satisfaction}")
-        
         return group_list_satisfaction / user_list_satisfaction
