@@ -21,12 +21,6 @@ class AveragePairwiseDisagreement(Disagreement):
         user_pairs = itertools.combinations(group, 2)
         pair_disagreements: List[float] = []
         for user_a, user_b in user_pairs:
-            # rating_a = self.__dataset.get_rating(user_a, item)
-            # if rating_a == 0:
-            #     rating_a = self.__predictor.get_prediction(user_a, item)
-            # rating_b = self.__dataset.get_rating(user_b, item)
-            # if rating_b == 0:
-            #     rating_b = self.__predictor.get_prediction(user_b, item)
             rating_a = self.__get_individual_relevance(user_a, item)
             rating_b = self.__get_individual_relevance(user_b, item)
             pair_disagreements.append(abs(rating_a - rating_b))
