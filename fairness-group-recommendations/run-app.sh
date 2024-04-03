@@ -21,8 +21,24 @@ if ! [[ $NUM_NEIGHBORS_FOR_PREDICTION =~ ^-?[0-9]+$ ]]; then
     exit 1
 fi
 
+CONSENSUS_WEIGHT_DISAGREEMENT=${4:-"2"}
+
+if [[ -n "$CONSENSUS_WEIGHT_DISAGREEMENT" && ! "$CONSENSUS_WEIGHT_DISAGREEMENT" =~ ^[0-9]+$ ]]; then
+    echo "Invalid value for CONSENSUS_WEIGHT_DISAGREEMENT. Please provide an integer value between 0 and 10."
+    exit 1
+fi
+
+SEQ_MOST_RECENT_ITERATIONS=${5:-"2"}
+
+if ! [[ $SEQ_MOST_RECENT_ITERATIONS =~ ^[1-9][0-9]*$ ]]; then
+    echo "Invalid value for SEQ_MOST_RECENT_ITERATIONS. Please provide a positive integer value."
+    exit 1
+fi
+
 docker compose up --no-start
 docker compose run -it --rm \
     -e SIMILARITY_FUNC="$SIMILARITY_FUNC" \
     -e PREDICTION_FUNC="$PREDICTION_FUNC" \
-    -e NUM_NEIGHBORS="$NUM_NEIGHBORS_FOR_PREDICTION" app
+    -e NUM_NEIGHBORS="$NUM_NEIGHBORS_FOR_PREDICTION" \
+    -e CONSENSUS_WEIGHT_DISAGREEMENT="$CONSENSUS_WEIGHT_DISAGREEMENT" \
+    -e SEQ_MOST_RECENT_ITERATIONS="$SEQ_MOST_RECENT_ITERATIONS" app
