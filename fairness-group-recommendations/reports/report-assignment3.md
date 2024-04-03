@@ -69,7 +69,7 @@ The next step is to extend our RS in order to make recommendations to group of u
 
 Lastly, the group RS is furtherly extended so as to consider many interactions between a group of users and the system itself. The proposed Sequential Group Recommendation System is a slight variation of the Sequential Dynamic Adaptation Aggregation method [3], which dinamically balances between Average and Least Misery Aggregation using previous disagreement information.
 
-The discussed concepts are implemented using the Python programming language. For the purpose of evaluation, the MovieLens 100K small dataset has been used. It contains ratings given by 610 users to 9743 movies.
+The discussed concepts are implemented using the Python programming language: instructions on how to run the application can be found in the above mentioned Github Repository. For the purpose of evaluation, the MovieLens 100K small dataset has been used. It contains ratings given by 610 users to 9743 movies.
 
 This paper is organized as follows: the first three sections respectively summarize the purpose and the proposed design for User-Based Collaborative Filtering, Group Recommendation, and Sequential Group Recommendation. The last two sections describe the approach used for evaluation and discuss the obtained results.
 
