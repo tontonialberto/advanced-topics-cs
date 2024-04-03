@@ -39,13 +39,15 @@ The following commands assume that the repository is downloaded locally, and you
 
 To build the application, launch the script `build-app.sh`.
 
-To run the application, launch the script `run-app.sh [SIMILARITY_FUNC] [PREDICTION_FUNC] [NUM_NEIGHBORS]`:
+To run the application, launch the script `run-app.sh [SIMILARITY_FUNC] [PREDICTION_FUNC] [NUM_NEIGHBORS] [CONSENSUS_WEIGHT_DISAGREEMENT] [SEQ_MOST_RECENT_ITERATIONS]`:
 - `SIMILARITY_FUNC` is an optional parameter to specify the similarity function to be used by the RS. Allowed values are `pearson` (default), `jaccard` and `itr`;
 - `PREDICTION_FUNC` is an optional parameter to specify the prediction function to be used by the RS. Allowed values are `mean_centered_abs` (default) and `mean_centered_no_abs` (the former is the Mean-Centered Aggregation presented above, the latter is the formula seen in class);
-- `NUM_NEIGHBORS` is an optional positive integer parameter to specify the number of most similar users to compute user predictions. Default value is -1 which indicates to use all users in the dataset.
+- `NUM_NEIGHBORS` is an optional positive integer parameter to specify the number of most similar users to compute user predictions. Default value is -1 which indicates to use all users in the dataset;
+- `CONSENSUS_WEIGHT_DISAGREEMENT` is an optional integer between 0 and 10 to specify the value for $w_2$ (multiplied by 10) in the Consensus formula for Group Recommendation. Default value is 2 (ie. $w_1=0.8, w_2=0.2$);
+- `SEQ_MOST_RECENT_ITERATIONS` is an optional positive integer that indicates the value for $k$ in the Sequential Group Recommendation (ie. the SDAA variation). Default value is 2.
 
 ### Command Line Interface
-Once launched, the application shows an interactive menu like the following:
+Once launched, the application shows an interactive menu like the following (to show the menu again, enter `h` or `help`):
 
 ![](./resources/report-images/command-line-interface.png)
 
@@ -60,9 +62,11 @@ Command 5, if selected, will prompt you to select a user and it will conduct all
 
 #### Commands - Assignment 2
 Commands from 6 to 8, if selected, will prompt you to select 3 user ids and return the top-10 group recommendations using a different aggregation method. The setting is the same as explained in the Assigment 2 report (see the Results section).
-> In case of Consensus, the values for the coefficients are w1=0.6, w2=0.4.
 
 Commands 9, 10 are just utilities to display the disagreement of either an item or all items among a group of users.
+
+#### Commands - Assigment 3
+Commands from 11 to 13 will conduct a Sequential Group Recommendation over multiple iterations on a group of 3 users, using (11) Average Aggregation, (12) Least Misery Aggregation, (13) Variation of SDAA presented in Assignment 3. You will be prompted for the users and the number of iterations.
 
 #### Commands - Utilities
 Command 101 computes the user similarity matrix for the similarity function chosen at application startup. The performances of the matrix computation have been hugely improved during development: the first implementation required approximately 30 **minutes** to compute PCC matrix on a small laptop, whereas now it takes from 4 to 10 **seconds** (you can take a look at the commit history to see how the Dataset class has been tweaked to precompute a lot of values). 
@@ -86,4 +90,5 @@ Here, the most interesting module is `domain`, which contains the following subm
 - `group_prediction`: group aggregation functions that are loosely coupled to `Prediction` functions. Each function must implement the `GroupPrediction` interface;
 - `recommender.py`: the recommendation system for single users;
 - `group_recommender.py`: the group recommendation system;
+- `sequential_group`: contains the `SequentialGroupRecommender` class and the proposed Sequential Aggregation method (see `implementation.py`);
 - `dataset.py`: a class that acts as a collection with optimized read operations. Lots of values are precomputed to increase prediction and similarity computation efficiency.
