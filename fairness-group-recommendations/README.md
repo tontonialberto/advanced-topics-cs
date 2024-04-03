@@ -23,6 +23,7 @@ Group Recommendation System which uses the User-Based Collaborative Filtering ap
 A detailed explanation of the work done can be found here:
 - [Assignment 1 Report - User-Based Collaborative Filtering](./reports/report-assignment1.md)
 - [Assignment 2 Report - Group Recommendation](./reports/report-assignment2.md)
+- [Assignment 3 Report and Overall Summary - Sequential Group Recommendation](./reports/report-assignment3.md)
 
 ## How to use the application
 
