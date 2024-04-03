@@ -7,11 +7,13 @@ Author: Alberto Tontoni
 - [How to use the application](#how-to-use-the-application)
     - [Build and Run](#build-and-run)
     - [Command Line Interface](#command-line-interface)
-        - [Commands - Assignment 1](#commands---assignment)
-        - [Commands - Assignment 2](#commands---assignment)
+        - [Commands - Assignment 1](#commands---assignment-1)
+        - [Commands - Assignment 2](#commands---assignment-2)
+        - [Commands - Assigment 3](#commands---assigment-3)
         - [Commands - Utilities](#commands---utilities)
         - [Commands - System Options](#commands---system-options)
     - [Code Organization](#code-organization)
+
 
 
 ## Description
