@@ -39,20 +39,21 @@ Project Source Code: https://github.com/tontonialberto/advanced-topics-cs
     - [Consensus Aggregation Method](#consensus-aggregation-method)
 - [Sequential Group Recommendation](#sequential-group-recommendation)
 - [Evaluation](#evaluation)
-  - [User-Based Collaborative Filtering](#user-based-collaborative-filtering)
-  - [Group Recommendation](#group-recommendation)
-  - [Sequential Group Recommendation](#sequential-group-recommendation)
+  - [User-Based Collaborative Filtering Evaluation](#user-based-collaborative-filtering-evaluation)
+  - [Group Recommendation Evaluation](#group-recommendation-evaluation)
+  - [Sequential Group Recommendation Evaluation](#sequential-group-recommendation-evaluation)
 - [Results](#results)
-  - [User-Based Collaborative Filtering](#user-based-collaborative-filtering)
-  - [Group Recommendation](#group-recommendation)
-    - [Average Aggregation](#average-aggregation)
-    - [Least Misery Aggregation](#least-misery-aggregation)
-    - [Consensus based on Average Aggregation](#consensus-based-on-average-aggregation)
-  - [Sequential Group Recommendation](#sequential-group-recommendation)
+  - [User-Based Collaborative Filtering Results](#user-based-collaborative-filtering-results)
+  - [Group Recommendation Results](#group-recommendation-results)
+    - [Average Aggregation Results](#average-aggregation-results)
+    - [Least Misery Aggregation Results](#least-misery-aggregation-results)
+    - [Consensus based on Average Aggregation Results](#consensus-based-on-average-aggregation-results)
+  - [Sequential Group Recommendation Results](#sequential-group-recommendation-results)
     - [Average Aggregation over 5 iterations](#average-aggregation-over-5-iterations)
     - [Least Misery Aggregation over 5 iterations](#least-misery-aggregation-over-5-iterations)
     - [Variation of SDAA over 5 iterations (k=2)](#variation-of-sdaa-over-5-iterations-k2)
 - [References](#references)
+
 
 </div>
 
@@ -197,7 +198,7 @@ where:
 - $N$ is the set of users who commonly rate item $i$. We can choose to restrict this set to the most similar users with respect to $u$;
 - $sim(u, v)$ is an arbitrary similarity function.
 
-As will be shown later, this prediction function returns ratings which are highly above or below the range 1-5 for this dataset.
+As seen in Assignment 1, this prediction function returns ratings which are highly above or below the range 1-5 for this dataset.
 
 Another prediction function has been considered, which is the *Mean-Centered Aggregation* defined as follows:
 
@@ -345,8 +346,8 @@ The working principle of the proposed aggregation method can be summarized as fo
 
 This section describes the approach used to evaluate the Recommendation System and the discussed alternatives.
 
-### User-Based Collaborative Filtering
-To get an idea of which similarity measure leads to better prediction, the following experiment will be conducted:
+### User-Based Collaborative Filtering Evaluation
+To evaluate which similarity measure leads to better prediction, the following experiment will be conducted:
 - Instantiate three recommenders $RS_{PCC}, RS_{JACCARD}, RS_{ITR}$. Both use the same prediction function but a different similarity function;
 - Select all items rated by a user: for each item, do a prediction with each of the recommenders and compare the results.
 
@@ -357,10 +358,10 @@ The following measures of error will be used:
 
 The best predictor is then chosen according to its MAE and score values.
 
-### Group Recommendation
+### Group Recommendation Evaluation
 For the case of Group Recommendation, a group of three users is chosen and top-10 movies recommendations are made using the presented aggregation methods. We then make some considerations on how the group recommendation items change according to the aggregation method, considering also the individuals' preferences and group disagreements.
 
-### Sequential Group Recommendation
+### Sequential Group Recommendation Evaluation
 Lastly, the proposed Sequential Group Recommender is compared with aggregation methods which only consider single iterations (ie. the Average and Least Misery methods used for Group Recommendations). The evaluation is done over 5 iterations on a group of 3 users, 2 similar and 1 dissimilar from the others. Their similarity matrix according to the Pearson Correlation Coefficient is shown below:
 
 |              | User 599 | User 382 | User 361 |
@@ -373,7 +374,7 @@ Lastly, the proposed Sequential Group Recommender is compared with aggregation m
 
 ## Results
 
-### User-Based Collaborative Filtering
+### User-Based Collaborative Filtering Results
 
 Unless otherwise specified, all the shown experiments use the *Mean-Centered Aggregation* as prediction function on all neighbors.
 
@@ -407,11 +408,11 @@ Here's the result of the evaluation conducted on user with Id 1, using the three
 
 It means that on this experiment, the similarity which leads to the best recommendations is the tweaked ITR version, since it has the highest score and lowest MAE.
 
-### Group Recommendation
+### Group Recommendation Results
 
 Unless otherwise specified, all the shown esperiments use the *Mean-Centered Aggregation* as prediction function on the 50 most similar neighbors. The similarity between users is computed using the *Pearson Correlation Coefficient*.
 
-#### Average Aggregation
+#### Average Aggregation Results
 
 Here are shown the top-10 recommendations for group of users [71, 390, 467] using the Average Aggregation:
 
@@ -430,7 +431,7 @@ Here are shown the top-10 recommendations for group of users [71, 390, 467] usin
 
 We can see that item 1194 and item 1663 have high disagreement values. By looking at the individual relevances, it seems that user 71 is penalized to some extent.
 
-#### Least Misery Aggregation
+#### Least Misery Aggregation Results
 
 Here are shown the top-10 recommendations for group of users [71, 390, 467]:
 |   # |   Item |   Pred. (Group) |   Pred. (User 71) |   Pred. (User 390) |   Pred. (User 467) |   Disagreement |
@@ -448,7 +449,7 @@ Here are shown the top-10 recommendations for group of users [71, 390, 467]:
 
 We can see that each recommendation only depends on the lowest relevance of a single user. Disagreements also seem to have reduced compared with the Average Aggregation scenario. 
 
-#### Consensus based on Average Aggregation
+#### Consensus based on Average Aggregation Results
 
 Here are performed two experiments for group recommendation using the *Consensus* function, which employs an underlying Average Aggregation function for group aggregation, and uses Average Pair-wise Disagreements as disagreement function.
 
@@ -488,7 +489,7 @@ Here are shown the top-10 results for group of users [71, 390, 467] for $w_1=0.6
 
 Here we can see that the vast majority of top-10 items have very low disagreement values. Moreover, even though the prediction score for the group is low, this is not related to the individual relevances, which are relatively high with respect to the 1-5 range of movie ratings.
 
-### Sequential Group Recommendation
+### Sequential Group Recommendation Results
 
 Unless otherwise specified, all the shown esperiments use the *Mean-Centered Aggregation* as prediction function on the 20 most similar neighbors. The similarity between users is computed using the *Pearson Correlation Coefficient*.
 
