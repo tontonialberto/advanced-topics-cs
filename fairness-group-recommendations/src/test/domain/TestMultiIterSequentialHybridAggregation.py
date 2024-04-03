@@ -45,7 +45,7 @@ class TestSequentialGroupPrediction(TestCase):
         group_predictor_least_misery = Mock(spec=GroupPrediction)
         group_predictor_least_misery.get_prediction.return_value = least_misery_prediction
         predictor = MultiIterSequentialHybridAggregation(
-            recommender=recommender,
+            get_previous_recommendations=lambda _: previous_recommendations,
             predictor_average=group_predictor_avg,
             predictor_least_misery=group_predictor_least_misery,
             user_satisfaction=Mock(spec=UserSatisfaction),
@@ -97,8 +97,6 @@ class TestSequentialGroupPrediction(TestCase):
             average_prediction: float,
             least_misery_prediction: float):
         
-        recommender = Mock(spec=SequentialGroupRecommender)
-        recommender.get_previous_recommendations.return_value = previous_recommendations
         group_predictor_avg = Mock(spec=GroupPrediction)
         group_predictor_avg.get_prediction.return_value = average_prediction
         group_predictor_least_misery = Mock(spec=GroupPrediction)
@@ -106,7 +104,7 @@ class TestSequentialGroupPrediction(TestCase):
         user_satisfaction = Mock(spec=UserSatisfaction)
         user_satisfaction.get_satisfaction.side_effect = user_satisfactions
         predictor = MultiIterSequentialHybridAggregation(
-            recommender=recommender,
+            get_previous_recommendations=lambda _: previous_recommendations,
             predictor_average=group_predictor_avg,
             predictor_least_misery=group_predictor_least_misery,
             user_satisfaction=user_satisfaction,
@@ -161,8 +159,6 @@ class TestSequentialGroupPrediction(TestCase):
             average_prediction: float,
             least_misery_prediction: float):
         
-        recommender = Mock(spec=SequentialGroupRecommender)
-        recommender.get_previous_recommendations.return_value = previous_recommendations
         group_predictor_avg = Mock(spec=GroupPrediction)
         group_predictor_avg.get_prediction.return_value = average_prediction
         group_predictor_least_misery = Mock(spec=GroupPrediction)
@@ -170,7 +166,7 @@ class TestSequentialGroupPrediction(TestCase):
         user_satisfaction = Mock(spec=UserSatisfaction)
         user_satisfaction.get_satisfaction.side_effect = user_satisfactions
         predictor = MultiIterSequentialHybridAggregation(
-            recommender=recommender,
+            get_previous_recommendations=lambda _: previous_recommendations,
             predictor_average=group_predictor_avg,
             predictor_least_misery=group_predictor_least_misery,
             user_satisfaction=user_satisfaction,
@@ -236,8 +232,6 @@ class TestSequentialGroupPrediction(TestCase):
             least_misery_prediction: float,
             expected_prediction: float):
         
-        recommender = Mock(spec=SequentialGroupRecommender)
-        recommender.get_previous_recommendations.return_value = previous_recommendations
         group_predictor_avg = Mock(spec=GroupPrediction)
         group_predictor_avg.get_prediction.return_value = average_prediction
         group_predictor_least_misery = Mock(spec=GroupPrediction)
@@ -245,7 +239,7 @@ class TestSequentialGroupPrediction(TestCase):
         user_satisfaction = Mock(spec=UserSatisfaction)
         user_satisfaction.get_satisfaction.side_effect = user_satisfactions
         predictor = MultiIterSequentialHybridAggregation(
-            recommender=recommender,
+            get_previous_recommendations=lambda _: previous_recommendations,
             predictor_average=group_predictor_avg,
             predictor_least_misery=group_predictor_least_misery,
             user_satisfaction=user_satisfaction,

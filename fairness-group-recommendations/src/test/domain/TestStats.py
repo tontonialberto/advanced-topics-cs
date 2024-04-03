@@ -3,9 +3,9 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from app.domain.dataset import Dataset, UserId
-from app.domain.recommender import Stats
 from app.domain.similarity.pearson import PearsonCorrelation
 from app.domain.similarity.similarity import Similarity
+from app.domain.similarity.stats import Stats
 
 
 class TestStats(TestCase):

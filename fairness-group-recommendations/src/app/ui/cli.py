@@ -1,13 +1,15 @@
 import os
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 from app.domain.dataset import Dataset, ItemId, UserId
 from app.domain.group_prediction.disagreement.disagreement import Disagreement
 from app.domain.group_prediction.group_prediction import Group
 from app.domain.group_recommender import GroupRecommender
-from app.domain.recommender import Evaluation, PerformanceEvaluator, Prediction, PredictorName, Recommender, Stats
+from app.domain.recommender import Evaluation, PerformanceEvaluator, Prediction, PredictorName, Recommender
 from app.domain.result_saver import ResultSaver
+from app.domain.sequential_group.sequential_group_recommender import SequentialGroupRecommender
 from app.domain.similarity.similarity import Similarity
+from app.domain.similarity.stats import Stats
 from app.domain.user_satisfaction import UserSatisfaction
 from app.domain.utils import calculate_execution_time
 from tabulate import tabulate
@@ -28,38 +30,16 @@ def start_cli_menu(
         recommender_least_misery: GroupRecommender,
         recommender_consensus: GroupRecommender,
         disagreement: Disagreement,
-        realistic_group_recommender: GroupRecommender,
+        realistic_group_recommender_avg: GroupRecommender,
+        realistic_group_recommender_least_misery: GroupRecommender,
+        sequential_group_recommender: SequentialGroupRecommender,
         user_satisfaction: UserSatisfaction) -> None:
     
     global TABLE_RESULTS_LIMIT
     
+    display_cli_menu()
+    
     while True:
-        print("")
-        print("CLI Menu:")
-        print(" Assignment 1:")
-        print("  1) Display dataset information")
-        print("  2) Show", TABLE_RESULTS_LIMIT, "highest similarities for a selected user")
-        print("  3) Recommend", TABLE_RESULTS_LIMIT, "most relevant movies for a selected user")
-        print("  4) Evaluate predictions for a selected user, based on different similarity functions")
-        print("  5) Save results of assignment 1 to CSV files")
-        print(" Assignment 2:")
-        print("  6) Recommend", TABLE_RESULTS_LIMIT, "most relevant movies for a group of 3 users (Average Aggregation)")
-        print("  7) Recommend", TABLE_RESULTS_LIMIT, "most relevant movies for a group of 3 users (Least Misery Aggregation)")
-        print("  8) Recommend", TABLE_RESULTS_LIMIT, "most relevant movies for a group of 3 users (Average with Consensus based on Pairwise Disagremeents)")
-        print("  9) Show average pairwise disagreement between a group of 3 users")
-        print("  10) Show disagreements for all items in a group of 3 users")
-        print(" Assignment 3:")
-        print("  11) Show user satisfaction for a group recommendation (3 users) over multiple iterations (10 top recommendations at each iteration)")
-        print(" Utilities:")
-        print("  101) Compute the user similarity matrix")
-        print("  102) Show items rated by a selected user")
-        print("  103) Show commonly rated items between two users")
-        print("  104) Show similarity between two users")
-        print("  105) Predict rating for a user on an item")
-        print(" System Options:")
-        print("  201) Change table rows limit (default 10)")
-        print("  202) Display system variables")
-        print(" 0) Exit")
 
         choice = input(">> ")
 
@@ -98,7 +78,15 @@ def start_cli_menu(
         elif choice == "11":
             group = [prompt_user_id() for _ in range(3)]
             iterations = prompt_integer("Enter number of iterations: ")
-            display_group_satisfaction(group, iterations, realistic_group_recommender, user_satisfaction)
+            display_group_satisfaction(group, iterations, realistic_group_recommender_avg, user_satisfaction)
+        elif choice == "12":
+            group = [prompt_user_id() for _ in range(3)]
+            iterations = prompt_integer("Enter number of iterations: ")
+            display_group_satisfaction(group, iterations, realistic_group_recommender_least_misery, user_satisfaction)
+        elif choice == "13":
+            group = [prompt_user_id() for _ in range(3)]
+            iterations = prompt_integer("Enter number of iterations: ")
+            display_group_satisfaction(group, iterations, sequential_group_recommender, user_satisfaction)
         elif choice == "101":
             compute_user_similarity_matrix(stats)
         elif choice == "102":
@@ -119,11 +107,50 @@ def start_cli_menu(
             print(f"Table results limit correctly set to {TABLE_RESULTS_LIMIT}.")
             print("")
         elif choice == "202":
-            print(os.environ.items())
+            print("")
+            for key, value in os.environ.items():
+                print(f"{key}: {value}")
+            print("")
+        elif choice in ["h", "help"]:
+            display_cli_menu()
         elif choice == "0":
             break
         else:
             print("Invalid choice. Please try again.")
+            
+def display_cli_menu() -> None:
+    global TABLE_RESULTS_LIMIT
+    
+    print("")
+    print("CLI Menu:")
+    print(" Assignment 1:")
+    print("  1) Display dataset information")
+    print("  2) Show", TABLE_RESULTS_LIMIT, "highest similarities for a selected user")
+    print("  3) Recommend", TABLE_RESULTS_LIMIT, "most relevant movies for a selected user")
+    print("  4) Evaluate predictions for a selected user, based on different similarity functions")
+    print("  5) Save results of assignment 1 to CSV files")
+    print(" Assignment 2:")
+    print("  6) Recommend", TABLE_RESULTS_LIMIT, "most relevant movies for a group of 3 users (Average Aggregation)")
+    print("  7) Recommend", TABLE_RESULTS_LIMIT, "most relevant movies for a group of 3 users (Least Misery Aggregation)")
+    print("  8) Recommend", TABLE_RESULTS_LIMIT, "most relevant movies for a group of 3 users (Average with Consensus based on Pairwise Disagremeents)")
+    print("  9) Show average pairwise disagreement between a group of 3 users")
+    print("  10) Show disagreements for all items in a group of 3 users")
+    print(" Assignment 3:")
+    print("  11) Show user satisfaction for group recommendation over multiple iterations using Average Aggregation (10 top recommendations at each iteration)")
+    print("  12) Show user satisfaction for group recommendation over multiple iterations using Least Misery Aggregation (10 top recommendations at each iteration)")
+    print("  13) Show user satisfaction for group recommendation over multiple iterations using Multi-Iter Sequential Hybrid Aggregation (10 top recommendations at each iteration)")
+    print(" Utilities:")
+    print("  101) Compute the user similarity matrix")
+    print("  102) Show items rated by a selected user")
+    print("  103) Show commonly rated items between two users")
+    print("  104) Show similarity between two users")
+    print("  105) Predict rating for a user on an item")
+    print(" System Options:")
+    print("  201) Change table rows limit (default 10)")
+    print("  202) Display system variables")
+    print(" Help:")
+    print("  h or help) Display this menu")
+    print(" 0) Exit")
             
 def prompt_user_id() -> UserId:
     return prompt_integer("Enter user id: ")
@@ -388,7 +415,7 @@ def display_prediction(user_id: UserId, item_id: ItemId, predictor: Prediction) 
     print("")
 
 @calculate_execution_time
-def display_group_satisfaction(group: Group, iterations: int, group_recommender: GroupRecommender, user_satisfaction: UserSatisfaction) -> None:
+def display_group_satisfaction(group: Group, iterations: int, group_recommender: Union[GroupRecommender, SequentialGroupRecommender], user_satisfaction: UserSatisfaction) -> None:
     print("")
     print("Calculating...")
     

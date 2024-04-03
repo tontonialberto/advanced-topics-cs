@@ -27,7 +27,7 @@ class TestUserSatisfaction(TestCase):
         dataset.get_rating.side_effect = user_actual_ratings
         satisfaction = UserSatisfaction(user_recommender, user_predictor, dataset)
         
-        sat = satisfaction.get_satisfaction(ANY, group_recommendation)
+        sat = satisfaction.get_satisfaction(1, group_recommendation)
         
         self.assertEqual(1, sat)
         
@@ -49,7 +49,7 @@ class TestUserSatisfaction(TestCase):
         dataset.get_rating.side_effect = user_actual_ratings
         satisfaction = UserSatisfaction(user_recommender, user_predictor, dataset)
         
-        sat = satisfaction.get_satisfaction(ANY, group_recommendation)
+        sat = satisfaction.get_satisfaction(1, group_recommendation)
         
         self.assertEqual(4 / 20, sat)
         
@@ -68,6 +68,6 @@ class TestUserSatisfaction(TestCase):
         dataset.get_rating.side_effect = user_actual_ratings
         satisfaction = UserSatisfaction(user_recommender, user_predictor, dataset)
         
-        sat = satisfaction.get_satisfaction(ANY, group_recommendation)
+        sat = satisfaction.get_satisfaction(1, group_recommendation)
         
         self.assertEqual(4 / 20, sat)

@@ -1,20 +1,19 @@
-from typing import List
+from typing import Callable, Dict, List, Tuple
 from app.domain.dataset import ItemId
 from app.domain.group_prediction.group_prediction import Group, GroupPrediction
 from app.domain.sequential_group.prediction.sequential_group_prediction import SequentialGroupPrediction
-from app.domain.sequential_group.sequential_group_recommender import SequentialGroupRecommender
 from app.domain.user_satisfaction import UserSatisfaction
 
 
 class MultiIterSequentialHybridAggregation(SequentialGroupPrediction):
     def __init__(
             self, 
-            recommender: SequentialGroupRecommender,
+            get_previous_recommendations: Callable[[Group], List[List[ItemId]]],
             predictor_average: GroupPrediction, 
             predictor_least_misery: GroupPrediction,
             user_satisfaction: UserSatisfaction,
             iterations_to_consider: int) -> None:
-        self.__recommender = recommender
+        self.__get_previous_recommendations = get_previous_recommendations
         self.__predictor_average = predictor_average
         self.__predictor_least_misery = predictor_least_misery
         self.__user_satisfaction = user_satisfaction
@@ -24,7 +23,7 @@ class MultiIterSequentialHybridAggregation(SequentialGroupPrediction):
         average_prediction = self.__predictor_average.get_prediction(group, item)
         least_misery_prediction = self.__predictor_least_misery.get_prediction(group, item)
         
-        group_recommendations = self.__recommender.get_previous_recommendations(group)
+        group_recommendations = self.__get_previous_recommendations(group)
         
         if len(group_recommendations) < self.__iterations_to_consider: # Initial iterations
             disagreement = 0
